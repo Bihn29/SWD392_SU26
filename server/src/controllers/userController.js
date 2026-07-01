@@ -1,9 +1,8 @@
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
 
 exports.getUsers = async (req, res, next) => {
   try {
-    const users = await User.find().select('-passwordHash').sort('-createdAt');
+    const users = await User.find().select('-password').sort('-createdAt');
     res.status(200).json({ success: true, data: users });
   } catch (error) {
     next(error);
@@ -12,7 +11,7 @@ exports.getUsers = async (req, res, next) => {
 
 exports.getUserById = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id).select('-passwordHash');
+    const user = await User.findById(req.params.id).select('-password');
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
@@ -31,19 +30,18 @@ exports.createUser = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Email already exists' });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password || 'password123', salt);
+    const passwordText = password || 'password123';
 
     const user = await User.create({
       name,
       email,
-      passwordHash,
+      password: passwordText,
       role: role || 'Student',
       isActive: isActive !== undefined ? isActive : true
     });
 
     const userObj = user.toObject();
-    delete userObj.passwordHash;
+    delete userObj.password;
 
     res.status(201).json({ success: true, data: userObj });
   } catch (error) {
@@ -69,7 +67,7 @@ exports.updateUser = async (req, res, next) => {
     await user.save();
 
     const userObj = user.toObject();
-    delete userObj.passwordHash;
+    delete userObj.password;
 
     res.status(200).json({ success: true, data: userObj });
   } catch (error) {

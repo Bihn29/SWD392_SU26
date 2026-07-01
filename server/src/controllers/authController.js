@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 const generateToken = (userId) => {
@@ -25,15 +24,12 @@ const register = async (req, res, next) => {
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
-
     // Mặc định tạo tài khoản có quyền Student
     // Và tên dùng fullName
     const user = await User.create({ 
       name: fullName || 'User', 
       email, 
-      passwordHash, 
+      password, 
       role: 'Student',
       phone
     });
@@ -56,7 +52,7 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email }).select('+passwordHash');
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({
         success: false,

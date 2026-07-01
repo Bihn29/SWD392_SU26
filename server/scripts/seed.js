@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const bcrypt = require('bcryptjs');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const User = require('../src/models/User');
@@ -29,17 +28,14 @@ const seedDatabase = async () => {
     await Lesson.deleteMany({});
     await Registration.deleteMany({});
 
-    console.log('Hashing passwords for users...');
-    const usersWithHashes = await Promise.all(users.map(async (u) => {
-      const salt = await bcrypt.genSalt(10);
-      const passwordHash = await bcrypt.hash(u.password || '123456', salt);
-      const newUser = { ...u, passwordHash };
-      delete newUser.password;
+    console.log('Preparing users...');
+    const usersWithPasswords = users.map((u) => {
+      const newUser = { ...u, password: u.password || '123456' };
       return newUser;
-    }));
+    });
 
     console.log('Inserting Users...');
-    const createdUsers = await User.create(usersWithHashes);
+    const createdUsers = await User.create(usersWithPasswords);
     
     const userMap = {};
     let adminId = null;

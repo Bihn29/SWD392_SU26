@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const ROLES = ['Admin', 'Manager', 'Teacher', 'Student'];
 
@@ -18,11 +17,10 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    passwordHash: {
+    password: {
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
-      select: false,
     },
     role: {
       type: String,
@@ -43,13 +41,13 @@ const userSchema = new mongoose.Schema(
 
 // Compare password
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.passwordHash);
+  return candidatePassword === this.password;
 };
 
 // Remove sensitive fields from JSON output if needed
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
-  delete obj.passwordHash;
+  delete obj.password;
   return obj;
 };
 
