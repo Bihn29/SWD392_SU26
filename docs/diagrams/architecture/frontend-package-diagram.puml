@@ -1,0 +1,147 @@
+@startuml frontend-package-diagram
+!theme plain
+title Figure 1.2.1. Front-end Package Diagram
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+skinparam defaultFontSize 11
+hide circle
+
+skinparam package {
+  BackgroundColor #FFFDE7
+  BorderColor #546E7A
+  FontSize 13
+}
+
+package "client/src" {
+
+  package "App.jsx" as app {
+  }
+
+  package "pages" {
+    package "public" as ppub {
+      [HomePage]
+    }
+    package "auth" as pauth {
+      [LoginPage]
+      [RegisterPage]
+    }
+    package "admin" as padmin {
+      [DashboardPage]
+      package "subjects" as psub {
+        [SubjectListPage]
+        [SubjectCreatePage]
+        [SubjectEditPage]
+        [SubjectDetailPage]
+      }
+      package "users" as puser {
+        [UserListPage]
+        [UserFormPage]
+      }
+      package "roles" as prole {
+        [RoleListPage]
+        [RoleCreatePage]
+        [RoleEditPage]
+        [RoleDetailPage]
+      }
+    }
+    package "teacher" as pteach {
+      [TeacherDashboardPage] <<placeholder>>
+    }
+    package "student" as pstud {
+      [MyCoursesPage] <<placeholder>>
+    }
+  }
+
+  package "components" {
+    package "common" as ccom {
+      [ConfirmModal]
+      [Pagination]
+      [StatusBadge]
+      [Toast / ToastProvider]
+    }
+    package "subjects" as csub {
+      [SubjectForm]
+      [SubjectLessonsTab]
+      [SubjectStudentsTab]
+    }
+    package "roles" as crole {
+      [RoleForm]
+      [PermissionCheckboxGroup]
+    }
+  }
+
+  package "layouts" {
+    [AdminLayout]
+  }
+
+  package "contexts" {
+    [AuthContext / AuthProvider]
+  }
+
+  package "api" {
+    [axiosInstance]
+    [authApi]
+    [dashboardApi]
+    [subjectApi]
+    [lessonApi]
+    [roleApi]
+    [registrationApi]
+  }
+
+  package "utils" {
+    [roleRedirect]
+    [roleLabels]
+    [statusLabels]
+  }
+
+}
+
+' ── Dependencies ──
+app --> [AdminLayout] : uses
+app --> ppub
+app --> pauth
+app --> padmin
+app --> pteach
+app --> pstud
+app --> [AuthContext / AuthProvider]
+
+pauth --> [AuthContext / AuthProvider] : login/register
+pauth --> [authApi]
+padmin --> [dashboardApi]
+padmin --> [subjectApi]
+padmin --> [lessonApi]
+padmin --> [roleApi]
+
+psub --> [SubjectForm]
+psub --> [SubjectLessonsTab]
+psub --> [SubjectStudentsTab]
+prole --> [RoleForm]
+prole --> [PermissionCheckboxGroup]
+
+[SubjectLessonsTab] --> [lessonApi]
+[SubjectStudentsTab] --> [registrationApi]
+
+[authApi] --> [axiosInstance]
+[dashboardApi] --> [axiosInstance]
+[subjectApi] --> [axiosInstance]
+[lessonApi] --> [axiosInstance]
+[roleApi] --> [axiosInstance]
+
+app --> [roleRedirect]
+[AdminLayout] --> [AuthContext / AuthProvider]
+
+note right of pteach
+  Future Development:
+  Teacher Dashboard
+end note
+
+note right of pstud
+  Future Development:
+  Student Learning
+end note
+
+@enduml

@@ -1,0 +1,93 @@
+@startuml backend-architecture
+!theme plain
+title Figure 1.1.2. Back-end Architecture
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+skinparam defaultFontSize 12
+hide circle
+
+skinparam rectangle {
+  BackgroundColor<<client>> #E8F5E9
+  BackgroundColor<<api>> #E3F2FD
+  BackgroundColor<<process>> #FFF3E0
+  BackgroundColor<<app>> #FCE4EC
+  BackgroundColor<<business>> #F3E5F5
+  BackgroundColor<<data>> #E0F7FA
+  BackgroundColor<<db>> #FFF9C4
+  BackgroundColor<<support>> #EFEBE9
+  BorderColor #546E7A
+  RoundCorner 10
+}
+
+rectangle "**Client**\n(React App / Postman / Browser)" as client <<client>>
+
+package "**NodeJS + ExpressJS Server**" {
+
+  rectangle "**API Layer**" as apiLayer <<api>> {
+    rectangle "authRoutes" as ar
+    rectangle "subjectRoutes" as sr
+    rectangle "userRoutes" as ur
+    rectangle "lessonRoutes" as lr
+    rectangle "roleRoutes" as rr
+    rectangle "dashboardRoutes" as dr
+    rectangle "registrationRoutes" as regr
+  }
+
+  rectangle "**Request Processing Layer**" as processLayer <<process>> {
+    rectangle "authMiddleware\n(protect / optionalAuth)" as am
+    rectangle "roleMiddleware\n(requireRole)" as rm
+    rectangle "errorMiddleware\n(errorHandler / notFound)" as em
+    rectangle "subjectValidation" as sv
+    rectangle "roleValidation" as rv
+  }
+
+  rectangle "**Application Layer**" as appLayer <<app>> {
+    rectangle "authController" as ac
+    rectangle "subjectController" as sc
+    rectangle "userController" as uc
+    rectangle "lessonController" as lc
+    rectangle "roleController" as rc
+    rectangle "dashboardController" as dc
+    rectangle "registrationController" as regc
+  }
+
+  rectangle "**Business Logic Layer**" as businessLayer <<business>> {
+    rectangle "subjectService" as ss
+    rectangle "roleService" as rs
+  }
+
+  rectangle "**Data Access Layer**" as dataLayer <<data>> {
+    rectangle "User Model" as um
+    rectangle "Subject Model" as sm
+    rectangle "Lesson Model" as lm
+    rectangle "Role Model" as rom
+    rectangle "Registration Model" as rem
+  }
+
+  rectangle "**Support**" as supportLayer <<support>> {
+    rectangle "config/db.js" as cfg
+    rectangle "constants/permissions.js" as perm
+    rectangle "scripts/seed.js" as seed
+    rectangle "scripts/seedRoles.js" as seedr
+    rectangle "data/seed.vi.json" as sdata
+  }
+}
+
+database "**MongoDB**" as mongodb
+
+' ── Flow ──
+client -down-> apiLayer : HTTP Request
+apiLayer -down-> processLayer : Middleware Chain
+processLayer -down-> appLayer : Validated Request
+appLayer -down-> businessLayer : Business Logic
+appLayer -down-> dataLayer : Direct Query
+businessLayer -down-> dataLayer : Mongoose Operations
+dataLayer -down-> mongodb : Mongoose ODM
+supportLayer -right-> dataLayer : Seed Data
+cfg -down-> mongodb : Connection
+
+@enduml

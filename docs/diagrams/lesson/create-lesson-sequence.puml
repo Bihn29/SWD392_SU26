@@ -1,0 +1,71 @@
+@startuml create-lesson-sequence
+!theme plain
+title Figure 2.5.3. Create Lesson – Sequence Diagram
+
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #546E7A
+skinparam sequenceParticipantBackgroundColor #FFF8E1
+skinparam sequenceLifeLineBorderColor #90A4AE
+skinparam sequenceActorBorderColor #546E7A
+
+actor "Admin / Manager" as admin
+participant "SubjectLessonsTab" as tab
+participant "lessonApi" as api
+participant "LessonController" as ctrl
+participant "LessonModel" as lm
+database "MongoDB" as db
+
+admin -> tab : Click "Thêm bài học" button
+activate tab
+
+tab -> tab : Show lesson form\n(title, type, order, videoUrl/htmlContent)
+
+admin -> tab : Fill form and submit
+
+tab -> tab : Client validation\n(check required fields by type)
+
+tab -> api : createLesson(subjectId,\n{ title, type, order, videoUrl, htmlContent })
+activate api
+
+api -> ctrl : POST /api/admin/subjects/:subjectId/lessons
+activate ctrl
+
+ctrl -> ctrl : Build data: { ...req.body,\nsubject: subjectId,\ncreatedBy: req.user._id,\nupdatedBy: req.user._id }
+
+ctrl -> lm : create(data)
+activate lm
+lm -> db : Insert lesson document
+activate db
+
+alt Validation error (e.g., missing title)
+  db --> lm : ValidationError
+  lm --> ctrl : Error
+  ctrl --> api : 400 { validation errors }
+  api --> tab : Error response
+  tab --> admin : Display validation errors
+else Success
+  db --> lm : Created lesson
+  deactivate db
+  lm --> ctrl : lesson
+  deactivate lm
+
+  ctrl --> api : 201 { success: true, data: lesson,\nmessage: "Lesson created successfully" }
+  deactivate ctrl
+  api --> tab : Created lesson
+  deactivate api
+
+  tab -> tab : Refresh lessons list\nHide form
+  tab --> admin : Show success toast\nNew lesson appears in list
+  deactivate tab
+end
+
+note over tab
+  Type-based validation:
+  Video → videoUrl required
+  HTML → htmlContent required
+  Quiz → placeholder (future)
+end note
+
+@enduml

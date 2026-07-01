@@ -1,0 +1,147 @@
+@startuml auth-class-diagram
+!theme plain
+title Figure 2.1.1. Authentication & Authorization – Class Diagram
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+skinparam defaultFontSize 11
+hide circle
+
+skinparam class {
+  BackgroundColor #FFF8E1
+  BorderColor #546E7A
+  ArrowColor #546E7A
+}
+
+package "Frontend – Auth Module" {
+
+  class LoginPage {
+    - email: string
+    - password: string
+    - error: string
+    - loading: boolean
+    + handleSubmit()
+    + handleChange()
+  }
+
+  class RegisterPage {
+    - fullName: string
+    - email: string
+    - password: string
+    - phone: string
+    - error: string
+    - loading: boolean
+    + handleSubmit()
+    + handleChange()
+  }
+
+  class AuthContext <<Context>> {
+    - user: Object
+    - token: string
+    - loading: boolean
+    + loginUser(userData, jwtToken)
+    + logoutUser()
+    + isAuthenticated: boolean
+    + hasRole(...roles): boolean
+  }
+
+  class authApi <<API Service>> {
+    + login(data): Promise
+    + register(data): Promise
+    + getMe(): Promise
+  }
+
+  class axiosInstance <<HTTP Client>> {
+    - baseURL: "/api"
+    - timeout: 15000
+    + requestInterceptor(): attachToken
+    + responseInterceptor(): handle401
+  }
+
+  class ProtectedRoute <<Route Guard>> {
+    + render(): Navigate | children
+  }
+
+  class GuestRoute <<Route Guard>> {
+    + render(): Navigate | children
+  }
+
+  class RoleRoute <<Route Guard>> {
+    - roles: string[]
+    + render(): Navigate | children
+  }
+
+  class roleRedirect <<Utility>> {
+    + getRoleCode(user): string
+    + getRedirectPathByRole(user): string
+  }
+}
+
+package "Backend – Auth Module" {
+
+  class AuthController <<Controller>> {
+    + register(req, res, next)
+    + login(req, res, next)
+    + getMe(req, res)
+  }
+
+  class UserModel <<Mongoose Model>> {
+    + name: String
+    + email: String
+    + passwordHash: String
+    + role: String {Admin|Manager|Teacher|Student}
+    + avatar: String
+    + isActive: Boolean
+    + createdAt: Date
+    + updatedAt: Date
+    --
+    + comparePassword(candidate): boolean
+    + toJSON(): Object
+  }
+
+  class AuthMiddleware <<Middleware>> {
+    + protect(req, res, next)
+    + optionalAuth(req, res, next)
+  }
+
+  class RoleMiddleware <<Middleware>> {
+    + requireRole(...roles)
+  }
+
+  class "generateToken()" as TokenUtil <<Utility>> {
+    + jwt.sign(userId, secret, options)
+  }
+
+  class "bcryptjs" as PasswordUtil <<Utility>> {
+    + genSalt(rounds): string
+    + hash(password, salt): string
+    + compare(candidate, hash): boolean
+  }
+}
+
+' ── Frontend Relationships ──
+LoginPage --> AuthContext : uses (useAuth)
+RegisterPage --> AuthContext : uses (useAuth)
+LoginPage --> authApi : login()
+RegisterPage --> authApi : register()
+AuthContext --> authApi : getMe()
+authApi --> axiosInstance : HTTP calls
+ProtectedRoute --> AuthContext : isAuthenticated
+GuestRoute --> AuthContext : isAuthenticated
+RoleRoute --> AuthContext : user.role
+RoleRoute --> roleRedirect : getRoleCode()
+
+' ── Backend Relationships ──
+AuthController --> UserModel : findOne / create
+AuthController --> TokenUtil : generateToken()
+AuthController --> PasswordUtil : hash / compare
+AuthMiddleware --> UserModel : findById
+AuthMiddleware --> TokenUtil : jwt.verify
+
+' ── Cross-layer ──
+authApi ..> AuthController : REST API call
+
+@enduml

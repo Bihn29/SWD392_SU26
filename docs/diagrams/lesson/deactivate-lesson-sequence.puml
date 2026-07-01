@@ -1,0 +1,70 @@
+@startuml deactivate-lesson-sequence
+!theme plain
+title Figure 2.5.5. Deactivate Lesson – Sequence Diagram
+
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #546E7A
+skinparam sequenceParticipantBackgroundColor #FFF8E1
+skinparam sequenceLifeLineBorderColor #90A4AE
+skinparam sequenceActorBorderColor #546E7A
+
+actor "Admin / Manager" as admin
+participant "SubjectLessonsTab" as tab
+participant "ConfirmModal" as modal
+participant "lessonApi" as api
+participant "LessonController" as ctrl
+participant "LessonModel" as lm
+database "MongoDB" as db
+
+admin -> tab : Click "Ngừng hoạt động" on a lesson
+activate tab
+
+tab -> modal : Show confirmation dialog\n"Bạn có chắc muốn ngừng hoạt động?"
+activate modal
+admin -> modal : Confirm
+modal --> tab : onConfirm()
+deactivate modal
+
+tab -> api : deleteLesson(lessonId)
+activate api
+
+api -> ctrl : DELETE /api/admin/lessons/:id
+activate ctrl
+
+ctrl -> lm : findByIdAndUpdate(id,\n{ status: 'Inactive', updatedBy: req.user._id },\n{ new: true })
+activate lm
+lm -> db : Update lesson status
+activate db
+
+alt Lesson not found
+  db --> lm : null
+  lm --> ctrl : null
+  ctrl --> api : 404 { message: "Lesson not found" }
+  api --> tab : Error
+  tab --> admin : Display "Lesson not found"
+else Success
+  db --> lm : Updated lesson
+  deactivate db
+  lm --> ctrl : lesson
+  deactivate lm
+
+  ctrl --> api : 200 { success: true,\nmessage: "Lesson deactivated successfully" }
+  deactivate ctrl
+  api --> tab : Success
+  deactivate api
+
+  tab -> tab : Refresh lessons list
+  tab --> admin : Show success toast\nLesson status = "Inactive"
+  deactivate tab
+end
+
+note over ctrl
+  Soft delete pattern:
+  Status set to "Inactive"
+  Lesson is NOT permanently deleted
+  Can be re-activated with PATCH /:id/activate
+end note
+
+@enduml

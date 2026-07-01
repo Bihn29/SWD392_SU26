@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getSubjectById, updateSubject } from '../../../api/subjectApi';
+import { getTeacherCourseById, updateTeacherCourse } from '../../../api/teacherApi';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/common/Toast';
 import SubjectForm from '../../../components/subjects/SubjectForm';
 
-const SubjectEditPage = () => {
+const SubjectEditPage = ({ isTeacher = false }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
   const isAdmin = user?.role === 'Admin';
+  const basePath = isTeacher ? '/teacher/courses' : '/admin/subjects';
 
   const [subject, setSubject] = useState(null);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -21,7 +23,7 @@ const SubjectEditPage = () => {
     const fetchSubject = async () => {
       setFetchLoading(true);
       try {
-        const res = await getSubjectById(id);
+        const res = isTeacher ? await getTeacherCourseById(id) : await getSubjectById(id);
         setSubject(res.data.data);
       } catch (err) {
         setFetchError(err.response?.data?.message || 'Không thể tải chi tiết khóa học.');
@@ -30,14 +32,18 @@ const SubjectEditPage = () => {
       }
     };
     fetchSubject();
-  }, [id]);
+  }, [id, isTeacher]);
 
   const handleSubmit = async (data) => {
     setSubmitLoading(true);
     try {
-      await updateSubject(id, data);
-      toast.success('Đã cập nhật khóa học!', 'Các thay đổi đã được lưu thành công.');
-      navigate('/admin/subjects');
+      if (isTeacher) {
+        await updateTeacherCourse(id, data);
+      } else {
+        await updateSubject(id, data);
+      }
+      toast.success('Đã cập nhật!', 'Thông tin khóa học đã được cập nhật.');
+      navigate(`${basePath}/${id}`);
     } catch (err) {
       const msg = err.response?.data?.message || 'Cập nhật khóa học thất bại.';
       toast.error('Cập nhật thất bại', msg);
@@ -74,18 +80,16 @@ const SubjectEditPage = () => {
       <div className="page-header">
         <div className="page-header-left">
           <nav className="breadcrumb">
-            <Link to="/admin/subjects" style={{ color: 'var(--text-muted)' }}>Khóa học</Link>
+            <Link to={basePath} style={{ color: 'var(--text-muted)' }}>Khóa học</Link>
             <span className="breadcrumb-separator">›</span>
-            <span className="breadcrumb-current truncate" style={{ maxWidth: '200px' }}>
-              {subject?.name}
-            </span>
+            <Link to={`${basePath}/${id}`} style={{ color: 'var(--text-muted)' }}>{subject.name}</Link>
             <span className="breadcrumb-separator">›</span>
-            <span className="breadcrumb-current">Chỉnh sửa</span>
+            <span className="breadcrumb-current">Sửa</span>
           </nav>
           <h1 className="page-title">Chỉnh sửa khóa học</h1>
           <p className="page-subtitle">Cập nhật thông tin và cài đặt khóa học</p>
         </div>
-        <Link to={`/admin/subjects/${id}`} className="btn btn-secondary" id="edit-view-btn">
+        <Link to={`${basePath}/${id}`} className="btn btn-secondary" id="edit-view-btn">
           👁️ Xem chi tiết
         </Link>
       </div>
@@ -104,6 +108,7 @@ const SubjectEditPage = () => {
           loading={submitLoading}
           isEdit={true}
           canChangeStatus={isAdmin}
+          isTeacher={isTeacher}
         />
       </div>
     </div>

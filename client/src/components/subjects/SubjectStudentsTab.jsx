@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getStudentsBySubject } from '../../api/registrationApi';
+import { getTeacherCourseStudents } from '../../api/teacherApi';
 
-const SubjectStudentsTab = ({ subjectId }) => {
+const SubjectStudentsTab = ({ subjectId, isTeacher = false }) => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -9,7 +10,7 @@ const SubjectStudentsTab = ({ subjectId }) => {
   const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getStudentsBySubject(subjectId);
+      const res = isTeacher ? await getTeacherCourseStudents(subjectId) : await getStudentsBySubject(subjectId);
       setStudents(res.data.data || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Lỗi khi tải danh sách học viên');

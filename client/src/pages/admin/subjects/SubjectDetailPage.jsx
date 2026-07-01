@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { getSubjectById, publishSubject, unpublishSubject, deleteSubject } from '../../../api/subjectApi';
+import { getTeacherCourseById, deleteTeacherCourse } from '../../../api/teacherApi';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/common/Toast';
 import StatusBadge from '../../../components/common/StatusBadge';
@@ -8,12 +9,13 @@ import ConfirmModal from '../../../components/common/ConfirmModal';
 import SubjectLessonsTab from '../../../components/subjects/SubjectLessonsTab';
 import SubjectStudentsTab from '../../../components/subjects/SubjectStudentsTab';
 
-const SubjectDetailPage = () => {
+const SubjectDetailPage = ({ isTeacher = false }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
   const isAdmin = user?.role === 'Admin';
+  const basePath = isTeacher ? '/teacher/courses' : '/admin/subjects';
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const initialTab = searchParams.get('tab') || 'info';
@@ -29,7 +31,7 @@ const SubjectDetailPage = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const res = await getSubjectById(id);
+        const res = isTeacher ? await getTeacherCourseById(id) : await getSubjectById(id);
         setSubject(res.data.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Không thể tải khóa học.');
@@ -52,9 +54,13 @@ const SubjectDetailPage = () => {
         setSubject((prev) => ({ ...prev, status: 'Unpublished' }));
         toast.warning('Đã hủy xuất bản', 'Khóa học đã hủy xuất bản.');
       } else if (modal.type === 'deactivate') {
-        await deleteSubject(id);
+        if (isTeacher) {
+          await deleteTeacherCourse(id);
+        } else {
+          await deleteSubject(id);
+        }
         toast.success('Đã ngừng hoạt động', 'Khóa học đã ngừng hoạt động.');
-        navigate('/admin/subjects');
+        navigate(basePath);
         return;
       }
       setModal({ isOpen: false, type: '' });
@@ -103,7 +109,7 @@ const SubjectDetailPage = () => {
       <div className="page-header">
         <div className="page-header-left">
           <nav className="breadcrumb">
-            <Link to="/admin/subjects" style={{ color: 'var(--text-muted)' }}>Khóa học</Link>
+            <Link to={basePath} style={{ color: 'var(--text-muted)' }}>Khóa học</Link>
             <span className="breadcrumb-separator">›</span>
             <span className="breadcrumb-current">{subject.name}</span>
           </nav>
@@ -115,7 +121,7 @@ const SubjectDetailPage = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <Link to={`/admin/subjects/${id}/edit`} className="btn btn-secondary" id="detail-edit-btn">
+          <Link to={`${basePath}/${id}/edit`} className="btn btn-secondary" id="detail-edit-btn">
             ✏️ Sửa
           </Link>
           {isAdmin && subject.status !== 'Published' && subject.status !== 'Inactive' && (
@@ -131,6 +137,11 @@ const SubjectDetailPage = () => {
           {isAdmin && subject.status !== 'Inactive' && (
             <button className="btn btn-danger" onClick={() => setModal({ isOpen: true, type: 'deactivate' })} id="detail-deactivate-btn">
               🗑️ Ngừng hoạt động
+            </button>
+          )}
+          {isTeacher && (
+            <button className="btn btn-danger" onClick={() => setModal({ isOpen: true, type: 'deactivate' })} id="detail-deactivate-btn">
+              🗑️ Xóa khóa học
             </button>
           )}
         </div>
@@ -269,11 +280,11 @@ const SubjectDetailPage = () => {
       )}
 
       {activeTab === 'lessons' && (
-        <SubjectLessonsTab subjectId={id} isAdmin={isAdmin} />
+        <SubjectLessonsTab subjectId={id} isAdmin={isAdmin} isTeacher={isTeacher} />
       )}
 
       {activeTab === 'students' && (
-        <SubjectStudentsTab subjectId={id} />
+        <SubjectStudentsTab subjectId={id} isTeacher={isTeacher} />
       )}
 
       <ConfirmModal

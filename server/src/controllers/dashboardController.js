@@ -103,3 +103,56 @@ exports.getDetails = async (req, res) => {
     res.status(500).json({ success: false, message: 'Lỗi server khi tải chi tiết' });
   }
 };
+
+exports.getTeacherDashboard = async (req, res, next) => {
+  try {
+    const teacherId = req.user._id;
+
+    // Lấy các môn học của giáo viên
+    const teacherSubjects = await Subject.find({ owner: teacherId }).select('_id');
+    const subjectIds = teacherSubjects.map(sub => sub._id);
+
+    const [
+      totalSubjects,
+      publishedSubjects,
+      draftSubjects,
+      totalLessons,
+      totalEnrolledStudents
+    ] = await Promise.all([
+      Subject.countDocuments({ owner: teacherId }),
+      Subject.countDocuments({ owner: teacherId, status: 'Published' }),
+      Subject.countDocuments({ owner: teacherId, status: 'Draft' }),
+      Lesson.countDocuments({ subject: { $in: subjectIds } }),
+      Registration.countDocuments({ subject: { $in: subjectIds }, status: 'Approved' })
+    ]);
+
+    const latestSubjects = await Subject.find({ owner: teacherId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+      
+    // Count students for latest subjects
+    const subjectsWithCounts = await Promise.all(latestSubjects.map(async (subject) => {
+      const studentCount = await Registration.countDocuments({ subject: subject._id, status: 'Approved' });
+      const lessonCount = await Lesson.countDocuments({ subject: subject._id });
+      return { ...subject, studentCount, lessonCount };
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: 'Lấy dữ liệu tổng quan thành công',
+      data: {
+        stats: {
+          totalSubjects,
+          publishedSubjects,
+          draftSubjects,
+          totalLessons,
+          totalEnrolledStudents
+        },
+        latestSubjects: subjectsWithCounts
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

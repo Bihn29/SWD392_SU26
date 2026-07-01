@@ -1,0 +1,100 @@
+@startuml frontend-architecture
+!theme plain
+title Figure 1.1.1. Front-end Architecture
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+skinparam defaultFontSize 12
+hide circle
+
+skinparam rectangle {
+  BackgroundColor<<user>> #E8F5E9
+  BackgroundColor<<app>> #E3F2FD
+  BackgroundColor<<router>> #FFF3E0
+  BackgroundColor<<page>> #FCE4EC
+  BackgroundColor<<component>> #F3E5F5
+  BackgroundColor<<context>> #E0F7FA
+  BackgroundColor<<api>> #FFF9C4
+  BackgroundColor<<guard>> #FFEBEE
+  BackgroundColor<<backend>> #EFEBE9
+  BorderColor #546E7A
+  RoundCorner 10
+}
+
+' ── Presentation Layer ──
+rectangle "**User Web Browser**" as user <<user>> {
+}
+
+rectangle "**React App** (Vite + React 18)" as app <<app>> {
+  rectangle "**React Router DOM**\n(BrowserRouter / Routes / Route)" as router <<router>>
+
+  rectangle "**Route Guards**" as guards <<guard>> {
+    rectangle "ProtectedRoute" as pr
+    rectangle "GuestRoute" as gr
+    rectangle "RoleRoute" as rr
+  }
+
+  rectangle "**Pages**" as pages <<page>> {
+    rectangle "HomePage" as hp
+    rectangle "LoginPage" as lp
+    rectangle "RegisterPage" as rp
+    rectangle "DashboardPage" as dp
+    rectangle "SubjectListPage" as slp
+    rectangle "SubjectDetailPage" as sdp
+    rectangle "UserListPage" as ulp
+    rectangle "UserFormPage" as ufp
+    rectangle "RoleListPage" as rlp
+  }
+
+  rectangle "**Components**" as components <<component>> {
+    rectangle "SubjectForm" as sf
+    rectangle "SubjectLessonsTab" as slt
+    rectangle "RoleForm" as rf
+    rectangle "ConfirmModal" as cm
+    rectangle "Pagination" as pg
+    rectangle "StatusBadge" as sb
+    rectangle "Toast" as ts
+  }
+
+  rectangle "**Layouts**" as layouts <<component>> {
+    rectangle "AdminLayout" as al
+  }
+
+  rectangle "**Contexts**" as contexts <<context>> {
+    rectangle "AuthContext\n(AuthProvider + useAuth)" as ac
+  }
+
+  rectangle "**Utils**" as utils <<context>> {
+    rectangle "roleRedirect" as rd
+    rectangle "roleLabels" as rl
+    rectangle "statusLabels" as stl
+  }
+
+  rectangle "**API Services**\n(axiosInstance)" as apiServices <<api>> {
+    rectangle "authApi" as aa
+    rectangle "dashboardApi" as da
+    rectangle "subjectApi" as sa
+    rectangle "lessonApi" as la
+    rectangle "roleApi" as ra
+  }
+}
+
+rectangle "**Backend REST API**\n(NodeJS + ExpressJS)" as backend <<backend>>
+
+' ── Relationships ──
+user -down-> app : HTTP Request
+router -down-> guards
+guards -down-> pages
+pages -down-> components
+pages -right-> contexts
+pages -down-> apiServices
+guards -right-> contexts
+rr -right-> rd
+apiServices -down-> backend : HTTP/REST\n(Axios)
+al -right-> pages
+contexts -down-> apiServices
+
+@enduml

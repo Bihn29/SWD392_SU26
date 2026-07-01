@@ -1,0 +1,84 @@
+@startuml deactivate-course-sequence
+!theme plain
+title Figure 2.4.6. Deactivate Course – Sequence Diagram
+
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #546E7A
+skinparam sequenceParticipantBackgroundColor #FFF8E1
+skinparam sequenceLifeLineBorderColor #90A4AE
+skinparam sequenceActorBorderColor #546E7A
+
+actor "Admin" as admin
+participant "SubjectListPage /\nSubjectDetailPage" as page
+participant "ConfirmModal" as modal
+participant "subjectApi" as api
+participant "SubjectController" as ctrl
+participant "SubjectService" as svc
+participant "SubjectModel" as sm
+database "MongoDB" as db
+
+admin -> page : Click "Ngừng hoạt động" button
+activate page
+
+page -> modal : Show confirmation dialog
+activate modal
+admin -> modal : Confirm deactivation
+modal --> page : onConfirm()
+deactivate modal
+
+page -> api : deleteSubject(id)
+activate api
+
+api -> ctrl : DELETE /api/subjects/:id
+activate ctrl
+
+ctrl -> svc : softDeleteSubject(id, req.user._id)
+activate svc
+
+svc -> sm : findById(id)
+activate sm
+sm -> db : Query subject
+activate db
+db --> sm : Subject document or null
+deactivate db
+sm --> svc : subject
+deactivate sm
+
+alt Subject not found
+  svc --> ctrl : null
+  ctrl --> api : 404 { message: "Subject not found" }
+  api --> page : Error
+  page --> admin : Display "Subject not found"
+else Subject found
+  svc -> svc : subject.status = 'Inactive'\nsubject.updatedBy = userId
+  svc -> sm : subject.save()
+  activate sm
+  sm -> db : Update status to Inactive
+  activate db
+  db --> sm : Updated
+  deactivate db
+  sm --> svc : subject
+  deactivate sm
+
+  svc --> ctrl : deactivated subject
+  deactivate svc
+
+  ctrl --> api : 200 { message: "Subject deactivated successfully" }
+  deactivate ctrl
+  api --> page : Success
+  deactivate api
+
+  page -> page : Refresh subject list
+  page --> admin : Show success toast\nSubject status changed to "Inactive"
+  deactivate page
+end
+
+note over svc
+  Soft delete: Status set to "Inactive"
+  Subject is NOT permanently deleted
+  (BR-SUB-009, BR-SUB-010)
+end note
+
+@enduml

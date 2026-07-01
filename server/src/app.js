@@ -41,6 +41,12 @@ app.use('/api/admin/subjects/:subjectId/lessons', require('./routes/lessonRoutes
 app.use('/api/admin/lessons', require('./routes/lessonRoutes'));
 app.use('/api/admin/subjects/:subjectId/students', require('./routes/registrationRoutes'));
 app.use('/api/admin/dashboard', require('./routes/dashboardRoutes'));
+
+// ─── Teacher Routes ──────────────────────────────────────────────────────────
+const { checkCourseOwner } = require('./middlewares/ownerMiddleware');
+app.use('/api/teacher', require('./routes/teacherRoutes'));
+app.use('/api/teacher/courses/:subjectId/lessons', checkCourseOwner, require('./routes/lessonRoutes'));
+app.use('/api/teacher/courses/:subjectId/students', checkCourseOwner, require('./routes/registrationRoutes'));
 // ─── Error Handlers ──────────────────────────────────────────────────────────
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

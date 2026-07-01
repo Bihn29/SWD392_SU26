@@ -1,0 +1,57 @@
+@startuml view-lessons-by-course-sequence
+!theme plain
+title Figure 2.5.2. View Lessons by Course – Sequence Diagram
+
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #546E7A
+skinparam sequenceParticipantBackgroundColor #FFF8E1
+skinparam sequenceLifeLineBorderColor #90A4AE
+skinparam sequenceActorBorderColor #546E7A
+
+actor "Admin / Manager" as admin
+participant "SubjectDetailPage" as detail
+participant "SubjectLessonsTab" as tab
+participant "lessonApi" as api
+participant "AuthMiddleware" as am
+participant "LessonController" as ctrl
+participant "LessonModel" as lm
+database "MongoDB" as db
+
+admin -> detail : Open Course Detail page
+activate detail
+
+admin -> detail : Click "Bài học" tab
+detail -> tab : Render SubjectLessonsTab\n(subjectId)
+activate tab
+
+tab -> api : getLessonsBySubject(subjectId)
+activate api
+
+api -> am : GET /api/admin/subjects/:subjectId/lessons\n[Bearer token]
+activate am
+am -> am : Verify JWT token
+am --> ctrl : next()
+deactivate am
+
+activate ctrl
+ctrl -> lm : find({ subject: subjectId })\n.sort({ order: 1 })\n.populate('createdBy', 'name')\n.populate('updatedBy', 'name')
+activate lm
+lm -> db : Query lessons by subject
+activate db
+db --> lm : lessons[]
+deactivate db
+lm --> ctrl : lessons
+deactivate lm
+
+ctrl --> api : 200 { success: true, data: lessons }
+deactivate ctrl
+api --> tab : Lessons array
+deactivate api
+
+tab --> admin : Render lessons list\n(order, title, type, status, actions)
+deactivate tab
+deactivate detail
+
+@enduml

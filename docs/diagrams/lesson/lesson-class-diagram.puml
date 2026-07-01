@@ -1,0 +1,99 @@
+@startuml lesson-class-diagram
+!theme plain
+title Figure 2.5.1. Lesson Management – Class Diagram
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+skinparam defaultFontSize 11
+hide circle
+
+skinparam class {
+  BackgroundColor #FFF8E1
+  BorderColor #546E7A
+  ArrowColor #546E7A
+}
+
+package "Frontend – Lesson Module" {
+
+  class SubjectLessonsTab <<Component>> {
+    - lessons: Array
+    - loading: boolean
+    - showForm: boolean
+    - editingLesson: Object
+    - formData: { title, type, order,\n  videoUrl, htmlContent, status }
+    + fetchLessons(subjectId)
+    + handleCreate()
+    + handleEdit(lesson)
+    + handleDelete(lessonId)
+    + handleActivate(lessonId)
+    + handleSubmit()
+  }
+
+  class lessonApi <<API Service>> {
+    + getLessonsBySubject(subjectId): Promise
+    + createLesson(subjectId, data): Promise
+    + updateLesson(lessonId, data): Promise
+    + deleteLesson(lessonId): Promise
+    + activateLesson(lessonId): Promise
+  }
+}
+
+package "Backend – Lesson Module" {
+
+  class LessonController <<Controller>> {
+    + getLessonsBySubject(req, res, next)
+    + getLessonById(req, res, next)
+    + createLesson(req, res, next)
+    + updateLesson(req, res, next)
+    + deleteLesson(req, res, next)
+    + activateLesson(req, res, next)
+  }
+
+  class LessonModel <<Mongoose Model>> {
+    + subject: ObjectId → Subject {required}
+    + title: String {required}
+    + type: String {enum: Video|HTML|Quiz, required}
+    + order: Number {required, default: 1}
+    + videoUrl: String
+    + htmlContent: String
+    + status: String {enum: Active|Inactive}
+    + createdBy: ObjectId → User
+    + updatedBy: ObjectId → User
+    + createdAt: Date
+    + updatedAt: Date
+  }
+
+  class SubjectModel <<Reference>> {
+    + _id: ObjectId
+    + name: String
+  }
+
+  class AuthMiddleware <<Middleware>> {
+    + protect(req, res, next)
+  }
+}
+
+' ── Frontend ──
+SubjectLessonsTab --> lessonApi : API calls
+
+' ── Backend ──
+LessonController --> LessonModel : CRUD operations
+LessonModel --> SubjectModel : references (subject)
+AuthMiddleware ..> LessonController : protect
+
+' ── Cross-layer ──
+lessonApi ..> LessonController : REST API
+
+note bottom of LessonModel
+  Lesson type validation:
+  - Video: videoUrl required
+  - HTML: htmlContent required
+  - Quiz: placeholder (future)
+
+  Soft delete: status = 'Inactive'
+end note
+
+@enduml

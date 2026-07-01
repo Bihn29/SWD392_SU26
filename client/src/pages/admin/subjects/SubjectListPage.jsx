@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getSubjects, deleteSubject, publishSubject, unpublishSubject } from '../../../api/subjectApi';
+import { getTeacherCourses, deleteTeacherCourse } from '../../../api/teacherApi';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/common/Toast';
 import StatusBadge from '../../../components/common/StatusBadge';
@@ -15,11 +16,12 @@ const SORT_OPTIONS = [
   { value: 'status', label: 'Trạng thái' },
 ];
 
-const SubjectListPage = () => {
+const SubjectListPage = ({ isTeacher = false }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
   const isAdmin = user?.role === 'Admin';
+  const basePath = isTeacher ? '/teacher/courses' : '/admin/subjects';
 
   // ─── State ──────────────────────────────────────────────────────
   const [subjects, setSubjects] = useState([]);
@@ -55,7 +57,7 @@ const SubjectListPage = () => {
       if (!params.status) delete params.status;
       if (!params.featured) delete params.featured;
 
-      const res = await getSubjects(params);
+      const res = isTeacher ? await getTeacherCourses(params) : await getSubjects(params);
       setSubjects(res.data.data);
       setPagination(res.data.pagination);
     } catch (err) {
@@ -111,7 +113,11 @@ const SubjectListPage = () => {
     setActionLoading(true);
     try {
       if (modal.type === 'deactivate') {
-        await deleteSubject(modal.subject._id);
+        if (isTeacher) {
+          await deleteTeacherCourse(modal.subject._id);
+        } else {
+          await deleteSubject(modal.subject._id);
+        }
         toast.success('Đã ngừng hoạt động', `"${modal.subject.name}" đã ngừng hoạt động.`);
       } else if (modal.type === 'publish') {
         await publishSubject(modal.subject._id);
@@ -162,15 +168,15 @@ const SubjectListPage = () => {
       <div className="page-header">
         <div className="page-header-left">
           <nav className="breadcrumb">
-            <span>Admin</span>
+            <span>{isTeacher ? 'Teacher' : 'Admin'}</span>
             <span className="breadcrumb-separator">›</span>
             <span className="breadcrumb-current">Khóa học</span>
           </nav>
-          <h1 className="page-title">Quản lý khóa học</h1>
-          <p className="page-subtitle">Quản lý tất cả môn học và khóa học trong hệ thống</p>
+          <h1 className="page-title">{isTeacher ? 'Khóa học của tôi' : 'Quản lý khóa học'}</h1>
+          <p className="page-subtitle">{isTeacher ? 'Quản lý các khóa học do bạn phụ trách' : 'Quản lý tất cả môn học và khóa học trong hệ thống'}</p>
         </div>
-        {isAdmin && (
-          <Link to="/admin/subjects/create" className="btn btn-primary" id="add-course-btn">
+        {(isAdmin || isTeacher) && (
+          <Link to={`${basePath}/create`} className="btn btn-primary" id="add-course-btn">
             ✨ Thêm khóa học mới
           </Link>
         )}
@@ -290,8 +296,8 @@ const SubjectListPage = () => {
                 ? 'Hãy thử điều chỉnh bộ lọc của bạn.'
                 : 'Tạo khóa học đầu tiên của bạn để bắt đầu.'}
             </p>
-            {isAdmin && (
-              <Link to="/admin/subjects/create" className="btn btn-primary" id="empty-add-btn">
+            {(isAdmin || isTeacher) && (
+              <Link to={`${basePath}/create`} className="btn btn-primary" id="empty-add-btn">
                 ✨ Thêm khóa học mới
               </Link>
             )}
@@ -363,14 +369,14 @@ const SubjectListPage = () => {
                     <td>
                       <div className="table-actions">
                         <Link
-                          to={`/admin/subjects/${subject._id}?tab=students`}
+                          to={`${basePath}/${subject._id}?tab=students`}
                           className="btn btn-icon btn-ghost"
                           title="Xem học viên"
                         >
                           👥
                         </Link>
                         <Link
-                          to={`/admin/subjects/${subject._id}`}
+                          to={`${basePath}/${subject._id}`}
                           className="btn btn-ghost btn-sm"
                           id={`view-subject-${subject._id}-btn`}
                           title="Xem"
@@ -378,7 +384,7 @@ const SubjectListPage = () => {
                           👁️
                         </Link>
                         <Link
-                          to={`/admin/subjects/${subject._id}/edit`}
+                          to={`${basePath}/${subject._id}/edit`}
                           className="btn btn-secondary btn-sm"
                           id={`edit-subject-${subject._id}-btn`}
                           title="Sửa"

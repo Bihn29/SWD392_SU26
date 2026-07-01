@@ -1,20 +1,26 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createSubject } from '../../../api/subjectApi';
+import { createTeacherCourse } from '../../../api/teacherApi';
 import { useToast } from '../../../components/common/Toast';
 import SubjectForm from '../../../components/subjects/SubjectForm';
 
-const SubjectCreatePage = () => {
+const SubjectCreatePage = ({ isTeacher = false }) => {
   const navigate = useNavigate();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
+  const basePath = isTeacher ? '/teacher/courses' : '/admin/subjects';
 
   const handleSubmit = async (data) => {
     setLoading(true);
     try {
-      await createSubject(data);
+      if (isTeacher) {
+        await createTeacherCourse(data);
+      } else {
+        await createSubject(data);
+      }
       toast.success('Đã tạo khóa học!', 'Khóa học đã được tạo thành công.');
-      navigate('/admin/subjects');
+      navigate(basePath);
     } catch (err) {
       const msg = err.response?.data?.message || 'Tạo khóa học thất bại.';
       toast.error('Tạo thất bại', msg);
@@ -29,7 +35,7 @@ const SubjectCreatePage = () => {
       <div className="page-header">
         <div className="page-header-left">
           <nav className="breadcrumb">
-            <Link to="/admin/subjects" style={{ color: 'var(--text-muted)' }}>Khóa học</Link>
+            <Link to={basePath} style={{ color: 'var(--text-muted)' }}>Khóa học</Link>
             <span className="breadcrumb-separator">›</span>
             <span className="breadcrumb-current">Thêm mới</span>
           </nav>
@@ -51,6 +57,7 @@ const SubjectCreatePage = () => {
           loading={loading}
           isEdit={false}
           canChangeStatus={false}
+          isTeacher={isTeacher}
         />
       </div>
     </div>

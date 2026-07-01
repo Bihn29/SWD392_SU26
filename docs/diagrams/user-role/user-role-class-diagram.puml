@@ -1,0 +1,179 @@
+@startuml user-role-class-diagram
+!theme plain
+title Figure 2.2.1. User & Role Management – Class Diagram
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+skinparam defaultFontSize 11
+hide circle
+
+skinparam class {
+  BackgroundColor #FFF8E1
+  BorderColor #546E7A
+  ArrowColor #546E7A
+}
+
+package "Frontend – User & Role Management" {
+
+  class UserListPage {
+    - users: Array
+    - loading: boolean
+    - error: string
+    + fetchUsers()
+    + handleDelete(id)
+    + handleToggleActive(id)
+  }
+
+  class UserFormPage {
+    - form: { name, email, password, role, isActive }
+    - isEdit: boolean
+    - loading: boolean
+    + handleSubmit()
+    + handleChange()
+    + loadUser(id)
+  }
+
+  class RoleListPage {
+    - roles: Array
+    - pagination: Object
+    - search: string
+    + fetchRoles()
+    + handleDeactivate(id)
+    + handleActivate(id)
+  }
+
+  class RoleCreatePage {
+    + render(): RoleForm
+  }
+
+  class RoleEditPage {
+    - roleId: string
+    + loadRole()
+    + render(): RoleForm
+  }
+
+  class RoleDetailPage {
+    - role: Object
+    - loading: boolean
+    + fetchRole()
+    + handleStatusToggle()
+  }
+
+  class RoleForm <<Component>> {
+    - form: { name, code, description, permissions, status }
+    - isEdit: boolean
+    + handleSubmit()
+    + handleChange()
+  }
+
+  class PermissionCheckboxGroup <<Component>> {
+    - permissions: string[]
+    - selected: string[]
+    + handleToggle(permission)
+  }
+
+  class userApi <<API Service>> {
+    + getUsers(): Promise
+    + getUserById(id): Promise
+    + createUser(data): Promise
+    + updateUser(id, data): Promise
+    + deleteUser(id): Promise
+  }
+
+  class roleApi <<API Service>> {
+    + getRoles(params): Promise
+    + getRoleById(id): Promise
+    + createRole(data): Promise
+    + updateRole(id, data): Promise
+    + deactivateRole(id): Promise
+    + activateRole(id): Promise
+  }
+}
+
+package "Backend – User Management" {
+
+  class UserController <<Controller>> {
+    + getUsers(req, res, next)
+    + getUserById(req, res, next)
+    + createUser(req, res, next)
+    + updateUser(req, res, next)
+    + deleteUser(req, res, next)
+  }
+
+  class UserModel <<Mongoose Model>> {
+    + name: String {required}
+    + email: String {required, unique}
+    + passwordHash: String {required, select:false}
+    + role: String {enum: Admin|Manager|Teacher|Student}
+    + avatar: String
+    + isActive: Boolean {default: true}
+    + createdAt: Date
+    + updatedAt: Date
+    --
+    + comparePassword(candidate): boolean
+    + toJSON(): Object
+  }
+}
+
+package "Backend – Role Management" {
+
+  class RoleController <<Controller>> {
+    + getRoles(req, res, next)
+    + getRoleById(req, res, next)
+    + createRole(req, res, next)
+    + updateRole(req, res, next)
+    + deactivateRole(req, res, next)
+    + activateRole(req, res, next)
+  }
+
+  class RoleService <<Service>> {
+    + getRoles(params): {items, pagination}
+    + getRoleById(id): Role
+    + createRole(data, userId): Role
+    + updateRole(id, data, userId): Role
+    + deactivateRole(id, userId): Role
+    + activateRole(id, userId): Role
+  }
+
+  class RoleModel <<Mongoose Model>> {
+    + name: String {required}
+    + code: String {required, unique}
+    + description: String
+    + permissions: String[]
+    + status: String {enum: Active|Inactive}
+    + isSystemRole: Boolean
+    + createdBy: ObjectId → User
+    + updatedBy: ObjectId → User
+    + createdAt: Date
+    + updatedAt: Date
+  }
+
+  class RoleValidation <<Validation>> {
+    + validateCreate(req, res, next)
+    + validateUpdate(req, res, next)
+  }
+}
+
+' ── Frontend relationships ──
+UserListPage --> userApi
+UserFormPage --> userApi
+RoleListPage --> roleApi
+RoleCreatePage --> RoleForm
+RoleEditPage --> RoleForm
+RoleForm --> PermissionCheckboxGroup
+RoleForm --> roleApi
+
+' ── Backend relationships ──
+UserController --> UserModel : CRUD operations
+RoleController --> RoleService : delegate
+RoleService --> RoleModel : Mongoose operations
+RoleValidation ..> RoleController : validate input
+
+' ── Cross-layer ──
+userApi ..> UserController : REST API
+roleApi ..> RoleController : REST API
+
+@enduml

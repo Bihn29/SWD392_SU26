@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getLessonsBySubject, createLesson, updateLesson, deleteLesson, activateLesson } from '../../api/lessonApi';
+import { getTeacherLessons, createTeacherLesson, updateTeacherLesson, deleteTeacherLesson, activateTeacherLesson } from '../../api/teacherApi';
 import { useToast } from '../common/Toast';
 import ConfirmModal from '../common/ConfirmModal';
 
-const SubjectLessonsTab = ({ subjectId, isAdmin }) => {
+const SubjectLessonsTab = ({ subjectId, isAdmin, isTeacher = false }) => {
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
@@ -16,7 +17,7 @@ const SubjectLessonsTab = ({ subjectId, isAdmin }) => {
   const fetchLessons = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getLessonsBySubject(subjectId);
+      const res = isTeacher ? await getTeacherLessons(subjectId) : await getLessonsBySubject(subjectId);
       setLessons(res.data.data || []);
     } catch (err) {
       console.error('Error loading lessons:', err);
@@ -61,10 +62,12 @@ const SubjectLessonsTab = ({ subjectId, isAdmin }) => {
     e.preventDefault();
     try {
       if (isEdit && modal.lesson) {
-        await updateLesson(modal.lesson._id, form);
+        if (isTeacher) await updateTeacherLesson(subjectId, modal.lesson._id, form);
+        else await updateLesson(modal.lesson._id, form);
         toast.success('Cập nhật bài học thành công');
       } else {
-        await createLesson(subjectId, form);
+        if (isTeacher) await createTeacherLesson(subjectId, form);
+        else await createLesson(subjectId, form);
         toast.success('Thêm bài học thành công');
       }
       setShowForm(false);
@@ -78,10 +81,12 @@ const SubjectLessonsTab = ({ subjectId, isAdmin }) => {
     if (!modal.lesson) return;
     try {
       if (modal.type === 'deactivate') {
-        await deleteLesson(modal.lesson._id);
+        if (isTeacher) await deleteTeacherLesson(subjectId, modal.lesson._id);
+        else await deleteLesson(modal.lesson._id);
         toast.success('Ngừng hoạt động bài học thành công');
       } else if (modal.type === 'activate') {
-        await activateLesson(modal.lesson._id);
+        if (isTeacher) await activateTeacherLesson(subjectId, modal.lesson._id);
+        else await activateLesson(modal.lesson._id);
         toast.success('Kích hoạt bài học thành công');
       }
       setModal({ isOpen: false, type: '', lesson: null });
@@ -99,7 +104,7 @@ const SubjectLessonsTab = ({ subjectId, isAdmin }) => {
         <div className="card">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 className="card-title">Danh sách bài học</h2>
-            {isAdmin && (
+            {(isAdmin || isTeacher) && (
               <button className="btn btn-primary" onClick={() => handleOpenForm()}>
                 + Thêm bài học
               </button>
@@ -120,7 +125,7 @@ const SubjectLessonsTab = ({ subjectId, isAdmin }) => {
                     <th>Tên bài học</th>
                     <th>Loại bài học</th>
                     <th>Trạng thái</th>
-                    {isAdmin && <th style={{ textAlign: 'right' }}>Hành động</th>}
+                    {(isAdmin || isTeacher) && <th style={{ textAlign: 'right' }}>Hành động</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -136,7 +141,7 @@ const SubjectLessonsTab = ({ subjectId, isAdmin }) => {
                           <span className="badge badge-danger">Ngừng hoạt động</span>
                         )}
                       </td>
-                      {isAdmin && (
+                      {(isAdmin || isTeacher) && (
                         <td style={{ textAlign: 'right' }}>
                           <button className="btn btn-icon btn-ghost" onClick={() => handleOpenForm(les)} title="Sửa">
                             ✏️

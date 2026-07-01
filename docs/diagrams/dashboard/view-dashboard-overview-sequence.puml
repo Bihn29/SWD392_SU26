@@ -1,0 +1,83 @@
+@startuml view-dashboard-overview-sequence
+!theme plain
+title Figure 2.3.2. View Dashboard Overview – Sequence Diagram
+
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #546E7A
+skinparam sequenceParticipantBackgroundColor #FFF8E1
+skinparam sequenceLifeLineBorderColor #90A4AE
+skinparam sequenceActorBorderColor #546E7A
+
+actor "Admin / Manager" as admin
+participant "DashboardPage" as page
+participant "dashboardApi" as api
+participant "AuthMiddleware" as am
+participant "authorizeRoles" as ar
+participant "DashboardController" as ctrl
+participant "UserModel" as um
+participant "SubjectModel" as sm
+participant "LessonModel" as lm
+participant "RegistrationModel" as rm
+database "MongoDB" as db
+
+admin -> page : Navigate to /admin/dashboard
+activate page
+
+page -> api : getDashboardOverview()
+activate api
+
+api -> am : GET /api/admin/dashboard/overview\n[Bearer token]
+activate am
+am -> am : Verify JWT & load user
+am -> ar : next()
+deactivate am
+activate ar
+ar -> ar : Check role in ['Admin', 'Manager']
+
+alt Unauthorized role
+  ar --> api : 403 { message: "Bạn không có quyền truy cập" }
+  api --> page : Error
+  page --> admin : Show access denied
+else Authorized
+  ar -> ctrl : next()
+  deactivate ar
+  activate ctrl
+
+  ctrl -> ctrl : Promise.all([...])
+
+  ctrl -> um : countDocuments() / countDocuments({role: 'Admin'}) / ...
+  activate um
+  um -> db : Aggregate counts
+  db --> um : totalUsers, totalAdmins,\ntotalManagers, totalTeachers, totalStudents
+  deactivate um
+
+  ctrl -> sm : countDocuments() /\ncountDocuments({status: 'Published'}) / ...
+  activate sm
+  sm -> db : Aggregate counts
+  db --> sm : totalSubjects, publishedSubjects, draftSubjects
+  deactivate sm
+
+  ctrl -> lm : countDocuments()
+  activate lm
+  lm -> db : Count lessons
+  db --> lm : totalLessons
+  deactivate lm
+
+  ctrl -> rm : countDocuments({registrationStatus: 'Approved'})
+  activate rm
+  rm -> db : Count registrations
+  db --> rm : totalEnrolledStudents
+  deactivate rm
+
+  ctrl --> api : 200 { data: { stats: {...} } }
+  deactivate ctrl
+  api --> page : Stats object
+  deactivate api
+
+  page --> admin : Render statistic cards\n(Users, Subjects, Lessons, etc.)
+  deactivate page
+end
+
+@enduml

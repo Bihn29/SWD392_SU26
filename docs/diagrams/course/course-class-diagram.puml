@@ -1,0 +1,164 @@
+@startuml course-class-diagram
+!theme plain
+title Figure 2.4.1. Course / Subject Management – Class Diagram
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+skinparam defaultFontSize 11
+hide circle
+
+skinparam class {
+  BackgroundColor #FFF8E1
+  BorderColor #546E7A
+  ArrowColor #546E7A
+}
+
+package "Frontend – Subject Module" {
+
+  class SubjectListPage {
+    - subjects: Array
+    - pagination: Object
+    - filters: { search, category, status, owner }
+    - loading: boolean
+    + fetchSubjects(params)
+    + handleFilter()
+    + handlePageChange()
+    + handleDelete(id)
+    + handlePublish(id)
+    + handleUnpublish(id)
+  }
+
+  class SubjectCreatePage {
+    + render(): SubjectForm (mode=create)
+  }
+
+  class SubjectEditPage {
+    - subjectId: string
+    + loadSubject()
+    + render(): SubjectForm (mode=edit)
+  }
+
+  class SubjectDetailPage {
+    - subject: Object
+    - activeTab: string
+    - loading: boolean
+    + fetchSubject()
+    + handlePublish()
+    + handleUnpublish()
+    + handleDelete()
+    + renderTabs()
+  }
+
+  class SubjectForm <<Component>> {
+    - form: { name, category, owner, thumbnail,\n  description, featured, status }
+    - teachers: Array
+    - isEdit: boolean
+    + handleSubmit()
+    + handleChange()
+    + validateForm()
+  }
+
+  class SubjectLessonsTab <<Component>> {
+    - lessons: Array
+    - loading: boolean
+    + fetchLessons(subjectId)
+    + handleCreateLesson()
+    + handleEditLesson()
+    + handleDeleteLesson()
+  }
+
+  class SubjectStudentsTab <<Component>> {
+    - students: Array
+    - loading: boolean
+    + fetchStudents(subjectId)
+  }
+
+  class subjectApi <<API Service>> {
+    + getSubjects(params): Promise
+    + getSubjectById(id): Promise
+    + createSubject(data): Promise
+    + updateSubject(id, data): Promise
+    + deleteSubject(id): Promise
+    + publishSubject(id): Promise
+    + unpublishSubject(id): Promise
+    + getPublicSubjects(params): Promise
+    + getPublicSubjectById(id): Promise
+  }
+}
+
+package "Backend – Subject Module" {
+
+  class SubjectController <<Controller>> {
+    + getAllSubjects(req, res, next)
+    + getSubjectById(req, res, next)
+    + createSubject(req, res, next)
+    + updateSubject(req, res, next)
+    + deleteSubject(req, res, next)
+    + publishSubject(req, res, next)
+    + unpublishSubject(req, res, next)
+    + getPublicSubjects(req, res, next)
+    + getPublicSubjectById(req, res, next)
+  }
+
+  class SubjectService <<Service>> {
+    + getSubjects(params): {items, pagination}
+    + getSubjectById(id): Subject
+    + createSubject(data, userId): Subject
+    + updateSubject(id, data, user): Subject
+    + softDeleteSubject(id, userId): Subject
+    + publishSubject(id, userId): Subject
+    + unpublishSubject(id, userId): Subject
+    + getPublicSubjects(params): {items, pagination}
+  }
+
+  class SubjectModel <<Mongoose Model>> {
+    + name: String {required}
+    + category: String {required}
+    + owner: ObjectId → User {required}
+    + thumbnail: String
+    + description: String
+    + featured: Boolean
+    + status: String {Draft|Published|Unpublished|Inactive}
+    + createdBy: ObjectId → User
+    + updatedBy: ObjectId → User
+    + createdAt: Date
+    + updatedAt: Date
+  }
+
+  class SubjectValidation <<Validation>> {
+    + validateCreate(req, res, next)
+    + validateUpdate(req, res, next)
+  }
+
+  class AuthMiddleware <<Middleware>> {
+    + protect(req, res, next)
+  }
+
+  class RoleMiddleware <<Middleware>> {
+    + requireRole(...roles)
+  }
+}
+
+' ── Frontend relationships ──
+SubjectListPage --> subjectApi
+SubjectCreatePage --> SubjectForm
+SubjectEditPage --> SubjectForm
+SubjectForm --> subjectApi
+SubjectDetailPage --> subjectApi
+SubjectDetailPage *-- SubjectLessonsTab
+SubjectDetailPage *-- SubjectStudentsTab
+
+' ── Backend relationships ──
+SubjectController --> SubjectService : delegate
+SubjectService --> SubjectModel : Mongoose operations
+SubjectValidation ..> SubjectController : validate
+AuthMiddleware ..> SubjectController : protect
+RoleMiddleware ..> SubjectController : requireRole('Admin')
+
+' ── Cross-layer ──
+subjectApi ..> SubjectController : REST API
+
+@enduml

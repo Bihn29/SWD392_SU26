@@ -1,0 +1,63 @@
+@startuml view-user-list-sequence
+!theme plain
+title Figure 2.2.2. View User List – Sequence Diagram
+
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #546E7A
+skinparam sequenceParticipantBackgroundColor #FFF8E1
+skinparam sequenceLifeLineBorderColor #90A4AE
+skinparam sequenceActorBorderColor #546E7A
+
+actor "Admin / Manager" as admin
+participant "UserListPage" as page
+participant "userApi" as api
+participant "AuthMiddleware" as am
+participant "UserController" as ctrl
+participant "UserModel" as um
+database "MongoDB" as db
+
+admin -> page : Navigate to /admin/users
+activate page
+
+page -> api : getUsers()
+activate api
+
+api -> am : GET /api/admin/users\n[Authorization: Bearer token]
+activate am
+
+am -> am : Verify JWT token
+am -> um : findById(decoded.id)
+um -> db : Query user
+db --> um : User document
+um --> am : req.user
+
+alt Token invalid or user inactive
+  am --> api : 401 { message: "Authentication required" }
+  api --> page : Error
+  page --> admin : Show login redirect
+else Authenticated
+  am -> ctrl : next()
+  deactivate am
+  activate ctrl
+
+  ctrl -> um : find().select('-passwordHash')\n.sort('-createdAt')
+  activate um
+  um -> db : Query all users
+  activate db
+  db --> um : Users array
+  deactivate db
+  um --> ctrl : users[]
+  deactivate um
+
+  ctrl --> api : 200 { success: true, data: users }
+  deactivate ctrl
+  api --> page : Users data
+  deactivate api
+
+  page --> admin : Render user list table\n(name, email, role, status, actions)
+  deactivate page
+end
+
+@enduml

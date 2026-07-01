@@ -1,0 +1,90 @@
+@startuml sign-in-sequence
+!theme plain
+title Figure 2.1.2. Sign In – Sequence Diagram
+
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #546E7A
+skinparam sequenceParticipantBackgroundColor #FFF8E1
+skinparam sequenceLifeLineBorderColor #90A4AE
+skinparam sequenceActorBorderColor #546E7A
+
+actor "User" as user
+participant "LoginPage" as lp
+participant "AuthContext" as ac
+participant "authApi" as api
+participant "AuthController" as ctrl
+participant "UserModel" as um
+participant "bcryptjs" as bcrypt
+participant "JWT (jsonwebtoken)" as jwt
+database "MongoDB" as db
+
+user -> lp : Enter email & password
+activate lp
+
+lp -> ac : loginUser via handleSubmit()
+activate ac
+
+ac -> api : login({ email, password })
+activate api
+
+api -> ctrl : POST /api/auth/login
+activate ctrl
+
+ctrl -> um : findOne({ email }).select('+passwordHash')
+activate um
+um -> db : Query users collection
+activate db
+db --> um : User document (or null)
+deactivate db
+um --> ctrl : user
+deactivate um
+
+alt User not found
+  ctrl --> api : 401 { message: "Email hoặc mật khẩu không đúng" }
+  api --> ac : Error response
+  ac --> lp : Set error state
+  lp --> user : Display error message
+else User is inactive
+  ctrl --> api : 401 { message: "Tài khoản đã bị khóa" }
+  api --> ac : Error response
+  ac --> lp : Set error state
+  lp --> user : Display error message
+else User exists & active
+  ctrl -> bcrypt : user.comparePassword(password)
+  activate bcrypt
+  bcrypt --> ctrl : isMatch (true/false)
+  deactivate bcrypt
+
+  alt Password mismatch
+    ctrl --> api : 401 { message: "Email hoặc mật khẩu không đúng" }
+    api --> ac : Error response
+    ac --> lp : Set error state
+    lp --> user : Display error message
+  else Password matches
+    ctrl -> jwt : generateToken(user._id)
+    activate jwt
+    jwt --> ctrl : JWT token
+    deactivate jwt
+
+    ctrl --> api : 200 { token, user: { _id, fullName, email, role } }
+    deactivate ctrl
+    api --> ac : Success response
+    deactivate api
+
+    ac -> ac : localStorage.setItem('token', token)
+    ac -> ac : localStorage.setItem('user', user)
+    ac -> ac : setToken(token), setUser(user)
+
+    ac --> lp : Login successful
+    deactivate ac
+
+    lp -> lp : getRedirectPathByRole(user)
+    lp -> lp : navigate(redirectPath)
+    lp --> user : Redirect by role\n(Admin/Manager→/admin)\n(Teacher→/teacher)\n(Student→/my-courses)
+    deactivate lp
+  end
+end
+
+@enduml

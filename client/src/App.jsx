@@ -4,6 +4,7 @@ import { ToastProvider } from './components/common/Toast';
 
 // Layouts
 import AdminLayout from './layouts/AdminLayout';
+import TeacherLayout from './layouts/TeacherLayout';
 
 // Pages - Public & Auth
 import HomePage from './pages/public/HomePage';
@@ -12,6 +13,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 
 // Pages - Roles
 import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage';
+import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
 import MyCoursesPage from './pages/student/MyCoursesPage';
 
 // Pages - Dashboard
@@ -174,12 +176,20 @@ const AppRoutes = () => (
       path="/teacher"
       element={
         <ProtectedRoute>
-          <RoleRoute roles={['Teacher']}>
-            <TeacherDashboardPage />
+          <RoleRoute roles={['Teacher', 'Expert']}>
+            <TeacherLayout />
           </RoleRoute>
         </ProtectedRoute>
       }
-    />
+    >
+      <Route index element={<Navigate to="dashboard" replace />} />
+      <Route path="dashboard" element={<TeacherDashboardPage />} />
+      <Route path="courses" element={<SubjectListPage isTeacher={true} />} />
+      <Route path="courses/create" element={<SubjectCreatePage isTeacher={true} />} />
+      <Route path="courses/:id" element={<SubjectDetailPage isTeacher={true} />} />
+      <Route path="courses/:id/edit" element={<SubjectEditPage isTeacher={true} />} />
+      <Route path="profile" element={<TeacherProfilePage />} />
+    </Route>
 
     {/* Student Area */}
     <Route
