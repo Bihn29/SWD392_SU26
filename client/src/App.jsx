@@ -5,15 +5,19 @@ import { ToastProvider } from './components/common/Toast';
 // Layouts
 import AdminLayout from './layouts/AdminLayout';
 import TeacherLayout from './layouts/TeacherLayout';
+import StudentLayout from './layouts/StudentLayout';
 
 // Pages - Public & Auth
 import HomePage from './pages/public/HomePage';
+import CoursesPage from './pages/public/CoursesPage';
+import CourseDetailPage from './pages/public/CourseDetailPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 
 // Pages - Roles
 import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage';
 import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
+import StudentHomePage from './pages/student/StudentHomePage';
 import MyCoursesPage from './pages/student/MyCoursesPage';
 
 // Pages - Dashboard
@@ -79,7 +83,7 @@ const GuestRoute = ({ children }) => {
     const roleCode = getRoleCode(user);
     if (roleCode === 'Admin' || roleCode === 'Manager') return <Navigate to="/admin/dashboard" replace />;
     if (roleCode === 'Teacher') return <Navigate to="/teacher" replace />;
-    if (roleCode === 'Student') return <Navigate to="/my-courses" replace />;
+    if (roleCode === 'Student') return <Navigate to="/student" replace />;
     return <Navigate to="/" replace />;
   }
   return children;
@@ -90,6 +94,8 @@ const AppRoutes = () => (
   <Routes>
     {/* Public */}
     <Route path="/" element={<HomePage />} />
+    <Route path="/courses" element={<CoursesPage />} />
+    <Route path="/courses/:id" element={<CourseDetailPage />} />
 
     {/* Auth */}
     <Route
@@ -193,15 +199,20 @@ const AppRoutes = () => (
 
     {/* Student Area */}
     <Route
-      path="/my-courses"
+      path="/student"
       element={
         <ProtectedRoute>
           <RoleRoute roles={['Student']}>
-            <MyCoursesPage />
+            <StudentLayout />
           </RoleRoute>
         </ProtectedRoute>
       }
-    />
+    >
+      <Route index element={<Navigate to="home" replace />} />
+      <Route path="home" element={<StudentHomePage />} />
+      <Route path="my-courses" element={<MyCoursesPage />} />
+      <Route path="profile" element={<TeacherProfilePage />} />
+    </Route>
 
     {/* Fallback */}
     <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />

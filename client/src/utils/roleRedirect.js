@@ -27,7 +27,7 @@ export const getRedirectPathByRole = (user) => {
     case "Teacher":
       return "/teacher";
     case "Student":
-      return "/my-courses";
+      return "/student";
     default:
       return "/";
   }

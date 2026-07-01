@@ -35,6 +35,7 @@ app.get('/api/health', (req, res) => {
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/subjects', subjectRoutes);
+app.use('/api/student', require('./routes/studentRoutes'));
 app.use('/api/admin/roles', roleRoutes);
 app.use('/api/admin/users', require('./routes/userRoutes'));
 app.use('/api/admin/subjects/:subjectId/lessons', require('./routes/lessonRoutes'));
