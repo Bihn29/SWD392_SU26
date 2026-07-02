@@ -50,15 +50,15 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <h2>Đăng ký tài khoản</h2>
-          <p>Bắt đầu học tập cùng OnlineLearn</p>
+          <h2 style={{ textAlign: 'center', fontSize: '24px', fontWeight: '700', marginBottom: '8px' }}>Đăng ký tài khoản</h2>
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '32px' }}>Bắt đầu học tập cùng OnlineLearn</p>
         </div>
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label>Họ và tên</label>
+            <label className="form-label">Họ và tên</label>
             <input 
               type="text" 
               name="fullName"
@@ -69,7 +69,7 @@ const RegisterPage = () => {
             />
           </div>
           <div className="form-group">
-            <label>Email</label>
+            <label className="form-label">Email</label>
             <input 
               type="email" 
               name="email"
@@ -80,7 +80,7 @@ const RegisterPage = () => {
             />
           </div>
           <div className="form-group">
-            <label>Số điện thoại</label>
+            <label className="form-label">Số điện thoại</label>
             <input 
               type="text" 
               name="phone"
@@ -91,7 +91,7 @@ const RegisterPage = () => {
             />
           </div>
           <div className="form-group">
-            <label>Mật khẩu</label>
+            <label className="form-label">Mật khẩu</label>
             <input 
               type="password" 
               name="password"
@@ -102,7 +102,7 @@ const RegisterPage = () => {
             />
           </div>
           <div className="form-group">
-            <label>Xác nhận mật khẩu</label>
+            <label className="form-label">Xác nhận mật khẩu</label>
             <input 
               type="password" 
               name="confirmPassword"
@@ -112,7 +112,7 @@ const RegisterPage = () => {
               placeholder="Nhập lại mật khẩu"
             />
           </div>
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+          <button type="submit" className="btn btn-primary btn-lg btn-full" disabled={loading} style={{ marginTop: '8px' }}>
             {loading ? 'Đang xử lý...' : 'Đăng ký'}
           </button>
         </form>
