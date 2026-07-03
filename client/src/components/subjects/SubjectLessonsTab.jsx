@@ -1,0 +1,322 @@
+import { useState, useEffect, useCallback } from 'react';
+import { getLessonsBySubject, createLesson, updateLesson, deleteLesson, activateLesson } from '../../api/lessonApi';
+import { getTeacherLessons, createTeacherLesson, updateTeacherLesson, deleteTeacherLesson, activateTeacherLesson } from '../../api/teacherApi';
+import { uploadFile } from '../../api/uploadApi';
+import { useToast } from '../common/Toast';
+import ConfirmModal from '../common/ConfirmModal';
+import QuizManager from './QuizManager';
+
+const SubjectLessonsTab = ({ subjectId, isAdmin, isTeacher = false }) => {
+  const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const toast = useToast();
+
+  const [modal, setModal] = useState({ isOpen: false, type: '', lesson: null });
+  const [form, setForm] = useState({ title: '', type: 'Video', order: 1, videoUrl: '', htmlContent: '' });
+  const [showForm, setShowForm] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  
+  const [managingQuiz, setManagingQuiz] = useState(null);
+
+  const fetchLessons = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = isTeacher ? await getTeacherLessons(subjectId) : await getLessonsBySubject(subjectId);
+      setLessons(res.data.data || []);
+    } catch (err) {
+      console.error('Error loading lessons:', err);
+    } finally {
+      setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subjectId]);
+
+  useEffect(() => {
+    fetchLessons();
+  }, [fetchLessons]);
+
+  const handleOpenForm = (lesson = null) => {
+    if (lesson) {
+      setForm({
+        title: lesson.title,
+        type: lesson.type,
+        order: lesson.order,
+        videoUrl: lesson.videoUrl || '',
+        htmlContent: lesson.htmlContent || ''
+      });
+      setIsEdit(true);
+      setModal({ isOpen: false, type: '', lesson });
+    } else {
+      setForm({ title: '', type: 'Video', order: lessons.length + 1, videoUrl: '', htmlContent: '' });
+      setIsEdit(false);
+      setModal({ isOpen: false, type: '', lesson: null });
+    }
+    setShowForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+  };
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingVideo(true);
+    try {
+      const res = await uploadFile(file);
+      if (res.data && res.data.url) {
+        setForm(prev => ({ ...prev, videoUrl: res.data.url }));
+        toast.success('Tải video lên thành công!');
+      }
+    } catch (err) {
+      console.error('Lỗi upload video:', err);
+      toast.error('Không thể upload video, vui lòng thử lại.');
+    } finally {
+      setUploadingVideo(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (isEdit && modal.lesson) {
+        if (isTeacher) await updateTeacherLesson(subjectId, modal.lesson._id, form);
+        else await updateLesson(modal.lesson._id, form);
+        toast.success('Cập nhật bài học thành công');
+      } else {
+        if (isTeacher) await createTeacherLesson(subjectId, form);
+        else await createLesson(subjectId, form);
+        toast.success('Thêm bài học thành công');
+      }
+      setShowForm(false);
+      fetchLessons();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
+    }
+  };
+
+  const handleActionConfirm = async () => {
+    if (!modal.lesson) return;
+    try {
+      if (modal.type === 'deactivate') {
+        if (isTeacher) await deleteTeacherLesson(subjectId, modal.lesson._id);
+        else await deleteLesson(modal.lesson._id);
+        toast.success('Ngừng hoạt động bài học thành công');
+      } else if (modal.type === 'activate') {
+        if (isTeacher) await activateTeacherLesson(subjectId, modal.lesson._id);
+        else await activateLesson(modal.lesson._id);
+        toast.success('Kích hoạt bài học thành công');
+      }
+      setModal({ isOpen: false, type: '', lesson: null });
+      fetchLessons();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi thao tác');
+    }
+  };
+
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Đang tải bài học...</div>;
+
+  if (managingQuiz) {
+    return (
+      <QuizManager 
+        subjectId={subjectId} 
+        lesson={managingQuiz} 
+        onBack={() => setManagingQuiz(null)} 
+      />
+    );
+  }
+
+  return (
+    <div>
+      {!showForm ? (
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 className="card-title">Danh sách bài học</h2>
+            {(isAdmin || isTeacher) && (
+              <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+                + Thêm bài học
+              </button>
+            )}
+          </div>
+
+          {lessons.length === 0 ? (
+            <div className="state-container" style={{ padding: '3rem 0' }}>
+              <div className="state-icon">📭</div>
+              <div className="state-title">Chưa có bài học nào trong khóa học này</div>
+            </div>
+          ) : (
+            <div className="table-wrapper">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Thứ tự</th>
+                    <th>Tên bài học</th>
+                    <th>Loại bài học</th>
+                    <th>Trạng thái</th>
+                    {(isAdmin || isTeacher) && <th style={{ textAlign: 'right' }}>Hành động</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {lessons.map((les) => (
+                    <tr key={les._id}>
+                      <td>{les.order}</td>
+                      <td style={{ fontWeight: '500' }}>{les.title}</td>
+                      <td>{les.type}</td>
+                      <td>
+                        {les.status === 'Active' ? (
+                          <span className="badge badge-success">Hoạt động</span>
+                        ) : (
+                          <span className="badge badge-danger">Ngừng hoạt động</span>
+                        )}
+                      </td>
+                      {(isAdmin || isTeacher) && (
+                        <td style={{ textAlign: 'right' }}>
+                          {les.type === 'Quiz' && (
+                            <button className="btn btn-icon btn-ghost" onClick={() => setManagingQuiz(les)} title="Quản lý câu hỏi">
+                              📝
+                            </button>
+                          )}
+                          <button className="btn btn-icon btn-ghost" onClick={() => handleOpenForm(les)} title="Sửa">
+                            ✏️
+                          </button>
+                          {les.status === 'Active' ? (
+                            <button
+                              className="btn btn-icon btn-ghost"
+                              onClick={() => setModal({ isOpen: true, type: 'deactivate', lesson: les })}
+                              title="Ngừng hoạt động"
+                            >
+                              🗑️
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-icon btn-ghost"
+                              onClick={() => setModal({ isOpen: true, type: 'activate', lesson: les })}
+                              title="Kích hoạt"
+                            >
+                              ✅
+                            </button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <div className="card-header">
+            <h2 className="card-title">{isEdit ? 'Chỉnh sửa bài học' : 'Thêm bài học mới'}</h2>
+          </div>
+          <form onSubmit={handleSubmit} style={{ padding: '20px' }}>
+            <div className="form-group">
+              <label className="form-label">Tên bài học <span style={{ color: 'red' }}>*</span></label>
+              <input type="text" name="title" className="form-control" value={form.title} onChange={handleChange} required />
+            </div>
+
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Loại bài học</label>
+                <select name="type" className="form-control" value={form.type} onChange={handleChange}>
+                  <option value="Video">Video</option>
+                  <option value="HTML">HTML</option>
+                  <option value="Quiz">Quiz</option>
+                </select>
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Thứ tự</label>
+                <input type="number" name="order" className="form-control" value={form.order} onChange={handleChange} required min="1" />
+              </div>
+            </div>
+
+            {form.type === 'Video' && (
+              <div className="form-group">
+                <label className="form-label">Video bài giảng</label>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <div style={{ position: 'relative', overflow: 'hidden' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      disabled={uploadingVideo}
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
+                      {uploadingVideo ? '⏳ Đang tải lên...' : '🎬 Chọn video từ máy'}
+                    </button>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                      disabled={uploadingVideo}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        opacity: 0,
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+                  {form.videoUrl && (
+                    <span style={{ fontSize: '14px', color: 'var(--success)', fontWeight: '500' }}>
+                      ✅ Đã có video
+                    </span>
+                  )}
+                </div>
+                <span className="form-hint" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>Tải video từ máy (Tối đa 100MB).</span>
+              </div>
+            )}
+
+            {form.type === 'HTML' && (
+              <div className="form-group">
+                <label className="form-label">Nội dung HTML</label>
+                <textarea
+                  name="htmlContent"
+                  className="form-control"
+                  rows="6"
+                  value={form.htmlContent}
+                  onChange={handleChange}
+                ></textarea>
+              </div>
+            )}
+
+            {form.type === 'Quiz' && (
+              <div className="form-group">
+                <div style={{ padding: '15px', backgroundColor: '#f8f9fa', borderLeft: '4px solid #17a2b8', color: '#0c5460' }}>
+                  <strong>Lưu ý:</strong> Sau khi lưu thông tin cơ bản của bài Quiz, bạn có thể click vào biểu tượng 📝 (Quản lý câu hỏi) ở danh sách bài học để soạn câu hỏi trắc nghiệm.
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
+              <button type="submit" className="btn btn-primary">Lưu</button>
+              <button type="button" className="btn btn-ghost" onClick={handleCloseForm}>Hủy</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <ConfirmModal
+        isOpen={modal.isOpen}
+        title={modal.type === 'deactivate' ? 'Ngừng hoạt động bài học' : 'Kích hoạt bài học'}
+        message={`Bạn có chắc chắn muốn ${modal.type === 'deactivate' ? 'ngừng hoạt động' : 'kích hoạt'} bài học "${modal.lesson?.title}"?`}
+        confirmText={modal.type === 'deactivate' ? 'Ngừng hoạt động' : 'Kích hoạt'}
+        confirmVariant={modal.type === 'deactivate' ? 'danger' : 'success'}
+        onConfirm={handleActionConfirm}
+        onCancel={() => setModal({ isOpen: false, type: '', lesson: null })}
+      />
+    </div>
+  );
+};
+
+export default SubjectLessonsTab;
