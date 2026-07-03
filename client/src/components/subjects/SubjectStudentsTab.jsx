@@ -3,8 +3,6 @@ import { getStudentsBySubject, getStudentDetailedProgress as getAdminDetailedPro
 import { getTeacherCourseStudents, approveStudentRegistration, rejectStudentRegistration, getTeacherCourseStudentDetailedProgress as getTeacherDetailedProgress } from '../../api/teacherApi';
 import { useToast } from '../common/Toast';
 import ConfirmModal from '../common/ConfirmModal';
-import { getStudentsBySubject } from '../../api/registrationApi';
-import { getTeacherCourseStudents } from '../../api/teacherApi';
 
 const SubjectStudentsTab = ({ subjectId, isTeacher = false }) => {
   const [students, setStudents] = useState([]);
