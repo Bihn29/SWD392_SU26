@@ -2,7 +2,11 @@ const User = require('../models/User');
 
 exports.getUsers = async (req, res, next) => {
   try {
-    const users = await User.find().select('-password').sort('-createdAt');
+    const filter = {};
+    if (req.query.role) {
+      filter.role = req.query.role;
+    }
+    const users = await User.find(filter).select('-password').sort('-createdAt');
     res.status(200).json({ success: true, data: users });
   } catch (error) {
     next(error);

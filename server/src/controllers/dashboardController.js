@@ -117,13 +117,15 @@ exports.getTeacherDashboard = async (req, res, next) => {
       publishedSubjects,
       draftSubjects,
       totalLessons,
-      totalEnrolledStudents
+      totalEnrolledStudents,
+      totalPendingStudents
     ] = await Promise.all([
       Subject.countDocuments({ owner: teacherId }),
       Subject.countDocuments({ owner: teacherId, status: 'Published' }),
       Subject.countDocuments({ owner: teacherId, status: 'Draft' }),
       Lesson.countDocuments({ subject: { $in: subjectIds } }),
-      Registration.countDocuments({ subject: { $in: subjectIds }, status: 'Approved' })
+      Registration.countDocuments({ subject: { $in: subjectIds }, status: 'Approved' }),
+      Registration.countDocuments({ subject: { $in: subjectIds }, status: 'Pending' })
     ]);
 
     const latestSubjects = await Subject.find({ owner: teacherId })
@@ -147,7 +149,8 @@ exports.getTeacherDashboard = async (req, res, next) => {
           publishedSubjects,
           draftSubjects,
           totalLessons,
-          totalEnrolledStudents
+          totalEnrolledStudents,
+          totalPendingStudents
         },
         latestSubjects: subjectsWithCounts
       }

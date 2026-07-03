@@ -1,8 +1,10 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { ROLE_LABELS } from '../../utils/statusLabels';
+import { getRoleCode } from '../../utils/roleRedirect';
 
 const TeacherProfilePage = () => {
   const { user } = useAuth();
+  const roleCode = getRoleCode(user) || 'Teacher';
 
   return (
     <div>
@@ -31,7 +33,7 @@ const TeacherProfilePage = () => {
           <div className="detail-field">
             <span className="detail-label">Vai trò</span>
             <span className="detail-value">
-              <span className="badge badge-info">{ROLE_LABELS[user?.role] || user?.role || 'Teacher'}</span>
+              <span className="badge badge-info">{ROLE_LABELS[roleCode] || roleCode}</span>
             </span>
           </div>
 

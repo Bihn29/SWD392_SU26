@@ -8,6 +8,7 @@ import StatusBadge from '../../../components/common/StatusBadge';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import SubjectLessonsTab from '../../../components/subjects/SubjectLessonsTab';
 import SubjectStudentsTab from '../../../components/subjects/SubjectStudentsTab';
+import SubjectQATab from '../../../components/subjects/SubjectQATab';
 
 const SubjectDetailPage = ({ isTeacher = false }) => {
   const { id } = useParams();
@@ -170,6 +171,13 @@ const SubjectDetailPage = ({ isTeacher = false }) => {
         >
           Học viên
         </button>
+        <button
+          className={`btn btn-ghost ${activeTab === 'qa' ? 'active-tab' : ''}`}
+          style={{ borderBottom: activeTab === 'qa' ? '2px solid var(--primary-color)' : 'none', borderRadius: 0, paddingBottom: '10px' }}
+          onClick={() => setActiveTab('qa')}
+        >
+          Hỏi đáp (Q&A)
+        </button>
       </div>
 
       {/* ── Detail Grid ── */}
@@ -285,6 +293,10 @@ const SubjectDetailPage = ({ isTeacher = false }) => {
 
       {activeTab === 'students' && (
         <SubjectStudentsTab subjectId={id} isTeacher={isTeacher} />
+      )}
+
+      {activeTab === 'qa' && (
+        <SubjectQATab subjectId={id} />
       )}
 
       <ConfirmModal

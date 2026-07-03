@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const subjectRoutes = require('./routes/subjectRoutes');
@@ -23,6 +24,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// ─── Static Files (Uploads) ───────────────────────────────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -34,6 +38,7 @@ app.get('/api/health', (req, res) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/student', require('./routes/studentRoutes'));
 app.use('/api/admin/roles', roleRoutes);
@@ -48,6 +53,13 @@ const { checkCourseOwner } = require('./middlewares/ownerMiddleware');
 app.use('/api/teacher', require('./routes/teacherRoutes'));
 app.use('/api/teacher/courses/:subjectId/lessons', checkCourseOwner, require('./routes/lessonRoutes'));
 app.use('/api/teacher/courses/:subjectId/students', checkCourseOwner, require('./routes/registrationRoutes'));
+
+// ─── QA Routes ───────────────────────────────────────────────────────────────
+app.use('/api/qa', require('./routes/qaRoutes'));
+
+// ─── Progress Routes ─────────────────────────────────────────────────────────
+app.use('/api/progress', require('./routes/progressRoutes'));
+
 // ─── Error Handlers ──────────────────────────────────────────────────────────
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { SUBJECT_STATUS_LABELS } from '../../utils/statusLabels';
+import { getUsers } from '../../api/userApi';
+import { uploadFile } from '../../api/uploadApi';
 
 const CATEGORIES = [
   'Phát triển Frontend',
@@ -42,6 +44,7 @@ const SubjectForm = ({
     category: '',
     owner: '',
     thumbnail: '',
+    introVideo: '',
     description: '',
     featured: false,
     status: 'Draft',
@@ -49,6 +52,22 @@ const SubjectForm = ({
   });
 
   const [errors, setErrors] = useState({});
+  const [teachers, setTeachers] = useState([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+
+  // Fetch teachers for the dropdown
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const res = await getUsers({ role: 'Teacher' });
+        setTeachers(res.data.data || []);
+      } catch (err) {
+        console.error('Failed to fetch teachers:', err);
+      }
+    };
+    fetchTeachers();
+  }, []);
 
   // Sync when initialData changes (edit mode load)
   useEffect(() => {
@@ -99,6 +118,44 @@ const SubjectForm = ({
     }
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const res = await uploadFile(file);
+      if (res.data && res.data.url) {
+        setForm(prev => ({ ...prev, thumbnail: res.data.url }));
+      }
+    } catch (err) {
+      console.error('Lỗi upload file:', err);
+      alert('Không thể upload ảnh, vui lòng thử lại.');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingVideo(true);
+    try {
+      const res = await uploadFile(file);
+      if (res.data && res.data.url) {
+        setForm(prev => ({ ...prev, introVideo: res.data.url }));
+      }
+    } catch (err) {
+      console.error('Lỗi upload video:', err);
+      alert('Không thể upload video, vui lòng thử lại.');
+    } finally {
+      setUploadingVideo(false);
+      e.target.value = '';
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
@@ -116,6 +173,7 @@ const SubjectForm = ({
       category: form.category,
       owner: form.owner.trim(),
       thumbnail: form.thumbnail?.trim() || '',
+      introVideo: form.introVideo?.trim() || '',
       description: form.description?.trim() || '',
       featured: Boolean(form.featured),
     };
@@ -181,21 +239,26 @@ const SubjectForm = ({
 
         <div className="form-group">
           <label className="form-label" htmlFor="subject-owner">
-            ID Chuyên gia phụ trách <span className="required">*</span>
+            Chuyên gia phụ trách <span className="required">*</span>
           </label>
-          <input
+          <select
             id="subject-owner"
             name="owner"
-            type="text"
             className={`form-control ${errors.owner ? 'error' : ''}`}
-            placeholder="ObjectId của chuyên gia trong MongoDB"
             value={form.owner}
             onChange={handleChange}
-          />
+          >
+            <option value="">— Chọn chuyên gia phụ trách —</option>
+            {teachers.map((teacher) => (
+              <option key={teacher._id} value={teacher._id}>
+                {teacher.name} ({teacher.email})
+              </option>
+            ))}
+          </select>
           {errors.owner ? (
             <span className="form-error">{errors.owner}</span>
           ) : (
-            <span className="form-hint">ObjectId 24 ký tự của MongoDB</span>
+            <span className="form-hint">Chọn giảng viên từ danh sách</span>
           )}
         </div>
       </div>
@@ -203,18 +266,81 @@ const SubjectForm = ({
       {/* ── Thumbnail ── */}
       <div className="form-group">
         <label className="form-label" htmlFor="subject-thumbnail">
-          URL Ảnh thu nhỏ
+          Ảnh thu nhỏ (Thumbnail)
         </label>
-        <input
-          id="subject-thumbnail"
-          name="thumbnail"
-          type="url"
-          className="form-control"
-          placeholder="https://example.com/image.png"
-          value={form.thumbnail}
-          onChange={handleChange}
-        />
-        <span className="form-hint">Không bắt buộc. Dán URL ảnh trực tiếp.</span>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ position: 'relative', overflow: 'hidden' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={uploadingImage}
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              {uploadingImage ? '⏳ Đang tải lên...' : '📁 Chọn ảnh từ máy'}
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              disabled={uploadingImage}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer'
+              }}
+            />
+          </div>
+          {form.thumbnail && (
+            <span style={{ fontSize: '14px', color: 'var(--success)', fontWeight: '500' }}>
+              ✅ Đã có ảnh
+            </span>
+          )}
+        </div>
+        <span className="form-hint">Tải ảnh từ máy tính (Tối đa 5MB).</span>
+      </div>
+
+      {/* ── Intro Video ── */}
+      <div className="form-group">
+        <label className="form-label" htmlFor="subject-introVideo">
+          Video giới thiệu (Intro Video)
+        </label>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ position: 'relative', overflow: 'hidden' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={uploadingVideo}
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              {uploadingVideo ? '⏳ Đang tải lên...' : '🎬 Chọn video từ máy'}
+            </button>
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleVideoUpload}
+              disabled={uploadingVideo}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer'
+              }}
+            />
+          </div>
+          {form.introVideo && (
+            <span style={{ fontSize: '14px', color: 'var(--success)', fontWeight: '500' }}>
+              ✅ Đã có video
+            </span>
+          )}
+        </div>
+        <span className="form-hint">Tải video giới thiệu khóa học từ máy tính (Tối đa 100MB).</span>
       </div>
 
       {/* ── Description ── */}

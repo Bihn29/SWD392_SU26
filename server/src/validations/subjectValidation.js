@@ -142,6 +142,16 @@ const validateSubjectQuery = [
     .isIn(['asc', 'desc'])
     .withMessage('Order must be asc or desc.'),
 
+  query('startDate')
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .withMessage('Invalid startDate format. Use ISO8601.'),
+
+  query('endDate')
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .withMessage('Invalid endDate format. Use ISO8601.'),
+
   validate,
 ];
 

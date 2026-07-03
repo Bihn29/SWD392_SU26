@@ -24,6 +24,10 @@ const subjectSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    introVideo: {
+      type: String,
+      default: '',
+    },
     description: {
       type: String,
       maxlength: [5000, 'Description must not exceed 5000 characters'],

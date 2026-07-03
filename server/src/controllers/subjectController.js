@@ -7,7 +7,7 @@ const subjectService = require('../services/subjectService');
  */
 const getAllSubjects = async (req, res, next) => {
   try {
-    const { page, limit, search, category, status, owner, featured, sortBy, order } = req.query;
+    const { page, limit, search, category, status, owner, featured, startDate, endDate, sortBy, order } = req.query;
 
     // BR-SUB-012: Non-admins don't see Inactive subjects by default
     const excludeInactive = req.user.role !== 'Admin';
@@ -20,6 +20,8 @@ const getAllSubjects = async (req, res, next) => {
       status,
       owner,
       featured,
+      startDate,
+      endDate,
       sortBy,
       order,
       excludeInactive,

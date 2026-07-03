@@ -65,3 +65,39 @@ export const getTeacherCourseStudents = async (subjectId) => {
   const response = await axiosInstance.get(`${API_URL}/courses/${subjectId}/students`);
   return response;
 };
+
+export const approveStudentRegistration = async (subjectId, registrationId) => {
+  const response = await axiosInstance.patch(`${API_URL}/courses/${subjectId}/students/${registrationId}/approve`);
+  return response;
+};
+
+export const rejectStudentRegistration = async (subjectId, registrationId, data) => {
+  const response = await axiosInstance.patch(`${API_URL}/courses/${subjectId}/students/${registrationId}/reject`, data);
+  return response;
+};
+
+export const getTeacherCourseStudentDetailedProgress = async (subjectId, studentId) => {
+  const response = await axiosInstance.get(`${API_URL}/courses/${subjectId}/students/${studentId}/progress`);
+  return response;
+};
+
+// Questions (Quiz)
+export const getTeacherQuestions = async (subjectId, lessonId) => {
+  const response = await axiosInstance.get(`${API_URL}/courses/${subjectId}/lessons/${lessonId}/questions`);
+  return response;
+};
+
+export const createTeacherQuestion = async (subjectId, lessonId, data) => {
+  const response = await axiosInstance.post(`${API_URL}/courses/${subjectId}/lessons/${lessonId}/questions`, data);
+  return response;
+};
+
+export const updateTeacherQuestion = async (subjectId, lessonId, questionId, data) => {
+  const response = await axiosInstance.put(`${API_URL}/courses/${subjectId}/lessons/${lessonId}/questions/${questionId}`, data);
+  return response;
+};
+
+export const deleteTeacherQuestion = async (subjectId, lessonId, questionId) => {
+  const response = await axiosInstance.delete(`${API_URL}/courses/${subjectId}/lessons/${lessonId}/questions/${questionId}`);
+  return response;
+};

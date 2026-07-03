@@ -32,4 +32,7 @@ router.put('/:id', lessonController.updateLesson);
 router.delete('/:id', lessonController.deleteLesson);
 router.patch('/:id/activate', lessonController.activateLesson);
 
+// Mount question routes for quizzes
+router.use('/:lessonId/questions', require('./questionRoutes'));
+
 module.exports = router;

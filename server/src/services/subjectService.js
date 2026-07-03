@@ -11,6 +11,8 @@ const getSubjects = async ({
   status,
   owner,
   featured,
+  startDate,
+  endDate,
   sortBy = 'createdAt',
   order = 'desc',
   excludeInactive = false,
@@ -43,6 +45,18 @@ const getSubjects = async ({
 
   if (featured !== undefined) {
     filter.featured = featured === 'true' || featured === true;
+  }
+
+  if (startDate || endDate) {
+    filter.createdAt = {};
+    if (startDate) {
+      filter.createdAt.$gte = new Date(startDate);
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      filter.createdAt.$lte = end;
+    }
   }
 
   const sortOrder = order === 'asc' ? 1 : -1;

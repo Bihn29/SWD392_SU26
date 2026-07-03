@@ -30,6 +30,13 @@ const registrationSchema = new mongoose.Schema({
   rejectedReason: {
     type: String
   },
+  rejectedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  rejectedAt: {
+    type: Date
+  },
   notes: {
     type: String
   }

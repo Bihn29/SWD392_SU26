@@ -7,13 +7,14 @@ import { useToast } from '../../../components/common/Toast';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmModal from '../../../components/common/ConfirmModal';
+import CustomSelect from '../../../components/common/CustomSelect';
 import { SUBJECT_STATUS_LABELS } from '../../../utils/statusLabels';
 
 const STATUSES = ['', 'Draft', 'Published', 'Unpublished', 'Inactive'];
 const SORT_OPTIONS = [
-  { value: 'createdAt', label: 'Ngày tạo' },
-  { value: 'name', label: 'Tên khóa học' },
-  { value: 'status', label: 'Trạng thái' },
+  { value: 'createdAt', label: 'Sắp xếp: Ngày tạo' },
+  { value: 'name', label: 'Sắp xếp: Tên khóa học' },
+  { value: 'status', label: 'Sắp xếp: Trạng thái' },
 ];
 
 const SubjectListPage = ({ isTeacher = false }) => {
@@ -37,6 +38,8 @@ const SubjectListPage = ({ isTeacher = false }) => {
     sortBy: 'createdAt',
     order: 'desc',
     page: 1,
+    startDate: '',
+    endDate: '',
   });
 
   const [searchInput, setSearchInput] = useState('');
@@ -56,6 +59,8 @@ const SubjectListPage = ({ isTeacher = false }) => {
       if (!params.search) delete params.search;
       if (!params.status) delete params.status;
       if (!params.featured) delete params.featured;
+      if (!params.startDate) delete params.startDate;
+      if (!params.endDate) delete params.endDate;
 
       const res = isTeacher ? await getTeacherCourses(params) : await getSubjects(params);
       setSubjects(res.data.data);
@@ -86,7 +91,7 @@ const SubjectListPage = ({ isTeacher = false }) => {
           draft: draft.data.pagination.totalItems,
           inactive: inactive.data.pagination.totalItems,
         });
-      } catch {}
+      } catch { }
     })();
   }, [isAdmin]);
 
@@ -221,38 +226,55 @@ const SubjectListPage = ({ isTeacher = false }) => {
           </button>
         </form>
 
-        <select
-          id="subject-filter-status"
-          className="form-control filter-select"
+        <CustomSelect
+          className="filter-select"
           value={filters.status}
-          onChange={(e) => handleFilterChange('status', e.target.value)}
-        >
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>{s ? SUBJECT_STATUS_LABELS[s] : 'Tất cả trạng thái'}</option>
-          ))}
-        </select>
+          onChange={(val) => handleFilterChange('status', val)}
+          placeholder="Tất cả trạng thái"
+          options={[
+            { value: '', label: 'Tất cả trạng thái' },
+            ...STATUSES.filter(Boolean).map(s => ({ value: s, label: SUBJECT_STATUS_LABELS[s] }))
+          ]}
+        />
 
-        <select
-          id="subject-filter-featured"
-          className="form-control filter-select"
+        <CustomSelect
+          className="filter-select"
           value={filters.featured}
-          onChange={(e) => handleFilterChange('featured', e.target.value)}
-        >
-          <option value="">Tất cả</option>
-          <option value="true">⭐ Nổi bật</option>
-          <option value="false">Không nổi bật</option>
-        </select>
+          onChange={(val) => handleFilterChange('featured', val)}
+          placeholder="Tất cả"
+          options={[
+            { value: '', label: 'Tất cả' },
+            { value: 'true', label: '⭐ Nổi bật' },
+            { value: 'false', label: 'Không nổi bật' }
+          ]}
+        />
 
-        <select
-          id="subject-filter-sort"
-          className="form-control filter-select"
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input
+            type="date"
+            className="form-control filter-select"
+            style={{ minWidth: '130px' }}
+            value={filters.startDate}
+            onChange={(e) => handleFilterChange('startDate', e.target.value)}
+            title="Từ ngày"
+          />
+          <span style={{ color: 'var(--text-muted)' }}>-</span>
+          <input
+            type="date"
+            className="form-control filter-select"
+            style={{ minWidth: '130px' }}
+            value={filters.endDate}
+            onChange={(e) => handleFilterChange('endDate', e.target.value)}
+            title="Đến ngày"
+          />
+        </div>
+
+        <CustomSelect
+          className="filter-select"
           value={filters.sortBy}
-          onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-        >
-          {SORT_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+          onChange={(val) => handleFilterChange('sortBy', val)}
+          options={SORT_OPTIONS}
+        />
 
         <button
           id="subject-filter-order-btn"

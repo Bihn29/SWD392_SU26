@@ -25,4 +25,13 @@ router.use(authMiddleware);
 // GET /api/admin/subjects/:subjectId/students
 router.get('/', registrationController.getStudentsBySubject);
 
+// PATCH /api/admin/subjects/:subjectId/students/:registrationId/approve
+router.patch('/:registrationId/approve', registrationController.approveRegistration);
+
+// PATCH /api/admin/subjects/:subjectId/students/:registrationId/reject
+router.patch('/:registrationId/reject', registrationController.rejectRegistration);
+
+// GET /api/admin/subjects/:subjectId/students/:studentId/progress
+router.get('/:studentId/progress', registrationController.getStudentDetailedProgress);
+
 module.exports = router;

@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getLessonsBySubject, createLesson, updateLesson, deleteLesson, activateLesson } from '../../api/lessonApi';
 import { getTeacherLessons, createTeacherLesson, updateTeacherLesson, deleteTeacherLesson, activateTeacherLesson } from '../../api/teacherApi';
+import { uploadFile } from '../../api/uploadApi';
 import { useToast } from '../common/Toast';
 import ConfirmModal from '../common/ConfirmModal';
+import QuizManager from './QuizManager';
 
 const SubjectLessonsTab = ({ subjectId, isAdmin, isTeacher = false }) => {
   const [lessons, setLessons] = useState([]);
@@ -13,6 +15,9 @@ const SubjectLessonsTab = ({ subjectId, isAdmin, isTeacher = false }) => {
   const [form, setForm] = useState({ title: '', type: 'Video', order: 1, videoUrl: '', htmlContent: '' });
   const [showForm, setShowForm] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  
+  const [managingQuiz, setManagingQuiz] = useState(null);
 
   const fetchLessons = useCallback(async () => {
     setLoading(true);
@@ -58,6 +63,26 @@ const SubjectLessonsTab = ({ subjectId, isAdmin, isTeacher = false }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingVideo(true);
+    try {
+      const res = await uploadFile(file);
+      if (res.data && res.data.url) {
+        setForm(prev => ({ ...prev, videoUrl: res.data.url }));
+        toast.success('Tải video lên thành công!');
+      }
+    } catch (err) {
+      console.error('Lỗi upload video:', err);
+      toast.error('Không thể upload video, vui lòng thử lại.');
+    } finally {
+      setUploadingVideo(false);
+      e.target.value = '';
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -97,6 +122,16 @@ const SubjectLessonsTab = ({ subjectId, isAdmin, isTeacher = false }) => {
   };
 
   if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Đang tải bài học...</div>;
+
+  if (managingQuiz) {
+    return (
+      <QuizManager 
+        subjectId={subjectId} 
+        lesson={managingQuiz} 
+        onBack={() => setManagingQuiz(null)} 
+      />
+    );
+  }
 
   return (
     <div>
@@ -143,6 +178,11 @@ const SubjectLessonsTab = ({ subjectId, isAdmin, isTeacher = false }) => {
                       </td>
                       {(isAdmin || isTeacher) && (
                         <td style={{ textAlign: 'right' }}>
+                          {les.type === 'Quiz' && (
+                            <button className="btn btn-icon btn-ghost" onClick={() => setManagingQuiz(les)} title="Quản lý câu hỏi">
+                              📝
+                            </button>
+                          )}
                           <button className="btn btn-icon btn-ghost" onClick={() => handleOpenForm(les)} title="Sửa">
                             ✏️
                           </button>
@@ -200,8 +240,40 @@ const SubjectLessonsTab = ({ subjectId, isAdmin, isTeacher = false }) => {
 
             {form.type === 'Video' && (
               <div className="form-group">
-                <label className="form-label">Đường dẫn video (URL)</label>
-                <input type="text" name="videoUrl" className="form-control" value={form.videoUrl} onChange={handleChange} />
+                <label className="form-label">Video bài giảng</label>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <div style={{ position: 'relative', overflow: 'hidden' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      disabled={uploadingVideo}
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
+                      {uploadingVideo ? '⏳ Đang tải lên...' : '🎬 Chọn video từ máy'}
+                    </button>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                      disabled={uploadingVideo}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        opacity: 0,
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+                  {form.videoUrl && (
+                    <span style={{ fontSize: '14px', color: 'var(--success)', fontWeight: '500' }}>
+                      ✅ Đã có video
+                    </span>
+                  )}
+                </div>
+                <span className="form-hint" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>Tải video từ máy (Tối đa 100MB).</span>
               </div>
             )}
 
@@ -221,7 +293,7 @@ const SubjectLessonsTab = ({ subjectId, isAdmin, isTeacher = false }) => {
             {form.type === 'Quiz' && (
               <div className="form-group">
                 <div style={{ padding: '15px', backgroundColor: '#f8f9fa', borderLeft: '4px solid #17a2b8', color: '#0c5460' }}>
-                  <strong>Lưu ý:</strong> Bài quiz sẽ được cấu hình ở phân hệ Teacher sau. Hiện tại bạn chỉ cần tạo khung bài học.
+                  <strong>Lưu ý:</strong> Sau khi lưu thông tin cơ bản của bài Quiz, bạn có thể click vào biểu tượng 📝 (Quản lý câu hỏi) ở danh sách bài học để soạn câu hỏi trắc nghiệm.
                 </div>
               </div>
             )}
