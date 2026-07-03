@@ -91,7 +91,7 @@ const SubjectListPage = ({ isTeacher = false }) => {
           draft: draft.data.pagination.totalItems,
           inactive: inactive.data.pagination.totalItems,
         });
-      } catch {}
+      } catch { }
     })();
   }, [isAdmin]);
 
@@ -248,7 +248,7 @@ const SubjectListPage = ({ isTeacher = false }) => {
             { value: 'false', label: 'Không nổi bật' }
           ]}
         />
-        
+
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input
             type="date"
