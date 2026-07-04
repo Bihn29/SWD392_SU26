@@ -4,6 +4,7 @@ import { getSubjectById, publishSubject, unpublishSubject, deleteSubject } from 
 import { getTeacherCourseById, deleteTeacherCourse } from '../../../api/teacherApi';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/common/Toast';
+import { getRoleCode } from '../../../utils/roleRedirect';
 import StatusBadge from '../../../components/common/StatusBadge';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import SubjectLessonsTab from '../../../components/subjects/SubjectLessonsTab';
@@ -15,7 +16,10 @@ const SubjectDetailPage = ({ isTeacher = false }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
-  const isAdmin = user?.role === 'Admin';
+  const roleCode = getRoleCode(user);
+  const isAdmin = roleCode === 'Admin';
+  const isManager = roleCode === 'Manager';
+  const canPublish = isAdmin || isManager;
   const basePath = isTeacher ? '/teacher/courses' : '/admin/subjects';
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -125,12 +129,12 @@ const SubjectDetailPage = ({ isTeacher = false }) => {
           <Link to={`${basePath}/${id}/edit`} className="btn btn-secondary" id="detail-edit-btn">
             ✏️ Sửa
           </Link>
-          {isAdmin && subject.status !== 'Published' && subject.status !== 'Inactive' && (
+          {canPublish && subject.status !== 'Published' && subject.status !== 'Inactive' && (
             <button className="btn btn-success" onClick={() => setModal({ isOpen: true, type: 'publish' })} id="detail-publish-btn">
               🚀 Xuất bản
             </button>
           )}
-          {isAdmin && subject.status === 'Published' && (
+          {canPublish && subject.status === 'Published' && (
             <button className="btn btn-warning" onClick={() => setModal({ isOpen: true, type: 'unpublish' })} id="detail-unpublish-btn">
               📤 Hủy xuất bản
             </button>

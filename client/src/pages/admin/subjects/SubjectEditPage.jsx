@@ -4,6 +4,7 @@ import { getSubjectById, updateSubject } from '../../../api/subjectApi';
 import { getTeacherCourseById, updateTeacherCourse } from '../../../api/teacherApi';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/common/Toast';
+import { getRoleCode } from '../../../utils/roleRedirect';
 import SubjectForm from '../../../components/subjects/SubjectForm';
 
 const SubjectEditPage = ({ isTeacher = false }) => {
@@ -11,7 +12,9 @@ const SubjectEditPage = ({ isTeacher = false }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
-  const isAdmin = user?.role === 'Admin';
+  const roleCode = getRoleCode(user);
+  const isAdmin = roleCode === 'Admin';
+  const isManager = roleCode === 'Manager';
   const basePath = isTeacher ? '/teacher/courses' : '/admin/subjects';
 
   const [subject, setSubject] = useState(null);
@@ -107,7 +110,7 @@ const SubjectEditPage = ({ isTeacher = false }) => {
           onSubmit={handleSubmit}
           loading={submitLoading}
           isEdit={true}
-          canChangeStatus={isAdmin}
+          canChangeStatus={isAdmin || isManager}
           isTeacher={isTeacher}
         />
       </div>
