@@ -38,24 +38,29 @@ const AdminLayout = () => {
       {/* ── Sidebar ───────────────────────────────────── */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <span className="sidebar-logo-text">OnlineLearn Admin</span>
+          <span className="sidebar-logo-text">
+            {roleCode === 'Manager' ? 'OnlineLearn Manager' : 'OnlineLearn Admin'}
+          </span>
         </div>
 
         <nav className="sidebar-nav">
           <div className="sidebar-section-label">Quản lý</div>
-          {NAV_ITEMS.filter(item => item.roles.includes(roleCode)).map(({ to, icon, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `sidebar-nav-item ${isActive ? 'active' : ''}`
-              }
-              id={`nav-${label.toLowerCase().replace(/\s/g, '-')}`}
-            >
-              <span className="sidebar-nav-icon">{icon}</span>
-              <span>{label}</span>
-            </NavLink>
-          ))}
+          {NAV_ITEMS.filter(item => item.roles.includes(roleCode)).map(({ to, icon, label }) => {
+            const displayLabel = (roleCode === 'Manager' && label === 'Người dùng & Vai trò') ? 'Người dùng' : label;
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `sidebar-nav-item ${isActive ? 'active' : ''}`
+                }
+                id={`nav-${displayLabel.toLowerCase().replace(/\s/g, '-')}`}
+              >
+                <span className="sidebar-nav-icon">{icon}</span>
+                <span>{displayLabel}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div className="sidebar-footer">
@@ -79,7 +84,9 @@ const AdminLayout = () => {
 
       <div className="main-content">
         <header className="top-header">
-          <div className="header-title">Bảng điều khiển Admin</div>
+          <div className="header-title">
+            {roleCode === 'Manager' ? 'Bảng điều khiển Quản lý' : 'Bảng điều khiển Admin'}
+          </div>
           <div className="header-actions">
             <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
               Xin chào, <strong style={{ color: 'var(--text-primary)' }}>{user?.name || user?.fullName}</strong>

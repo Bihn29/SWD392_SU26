@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useToast } from '../../../components/common/Toast';
-
-const ROLES = ['Admin', 'Manager', 'Teacher', 'Student'];
+import { useAuth } from '../../../contexts/AuthContext';
+import { getRoleCode } from '../../../utils/roleRedirect';
 
 const UserFormPage = () => {
+  const { user } = useAuth();
+  const roleCode = getRoleCode(user);
+  const isManager = roleCode === 'Manager';
+
   const { id } = useParams();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
@@ -18,6 +22,10 @@ const UserFormPage = () => {
     role: 'Student',
     isActive: true,
   });
+
+  const ROLES = isManager
+    ? (formData.role === 'Manager' ? ['Manager', 'Teacher', 'Student'] : ['Teacher', 'Student'])
+    : ['Admin', 'Manager', 'Teacher', 'Student'];
 
   const [loading, setLoading] = useState(isEdit);
 
@@ -71,7 +79,7 @@ const UserFormPage = () => {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1 className="page-title">{isEdit ? 'Chỉnh sửa người dùng' : 'Thêm người dùng mới'}</h1>
+          <h1 className="page-title">{isEdit ? 'Chỉnh sửa người dùng' : (isManager ? 'Thêm giảng viên/học viên mới' : 'Thêm người dùng mới')}</h1>
         </div>
         <button onClick={() => navigate('/admin/users')} className="btn btn-ghost">
           Quay lại
@@ -126,6 +134,7 @@ const UserFormPage = () => {
               className="form-control"
               value={formData.role}
               onChange={handleChange}
+              disabled={isManager && formData.role === 'Manager'}
             >
               {ROLES.map((role) => (
                 <option key={role} value={role}>

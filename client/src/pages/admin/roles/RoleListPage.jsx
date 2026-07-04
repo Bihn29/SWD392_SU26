@@ -113,11 +113,41 @@ const RoleListPage = () => {
     <div className="admin-page">
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 className="page-title">Quản lý vai trò</h1>
+          <h1 className="page-title">Quản lý Người dùng & Vai trò</h1>
           <p className="page-subtitle">Quản lý các vai trò và quyền truy cập trong hệ thống OnlineLearn</p>
         </div>
         <Link to="/admin/roles/create" className="role-add-btn">
           <span style={{ fontSize: '18px' }}>+</span> Thêm vai trò mới
+        </Link>
+      </div>
+
+      {/* Tab Switcher */}
+      <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '20px', paddingBottom: '2px' }}>
+        <Link
+          to="/admin/users"
+          style={{
+            padding: '8px 16px',
+            textDecoration: 'none',
+            color: '#94a3b8',
+            fontWeight: '500',
+            borderBottom: '3px solid transparent',
+            marginBottom: '-5px'
+          }}
+        >
+          Người dùng
+        </Link>
+        <Link
+          to="/admin/roles"
+          style={{
+            padding: '8px 16px',
+            textDecoration: 'none',
+            color: '#f8fafc',
+            fontWeight: '600',
+            borderBottom: '3px solid #6c63ff',
+            marginBottom: '-5px'
+          }}
+        >
+          Vai trò
         </Link>
       </div>
 

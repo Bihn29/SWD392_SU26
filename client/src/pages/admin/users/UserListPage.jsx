@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useToast } from '../../../components/common/Toast';
 import { ROLE_LABELS } from '../../../utils/statusLabels';
+import { useAuth } from '../../../contexts/AuthContext';
+import { getRoleCode } from '../../../utils/roleRedirect';
 
 const UserListPage = () => {
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState(null);
@@ -44,7 +47,9 @@ const UserListPage = () => {
     return acc;
   }, { Total: 0 });
 
-  const ROLES_TO_SHOW = ['Admin', 'Manager', 'Teacher', 'Student'];
+  const roleCode = getRoleCode(user);
+  const isManager = roleCode === 'Manager';
+  const ROLES_TO_SHOW = isManager ? ['Manager', 'Teacher', 'Student'] : ['Admin', 'Manager', 'Teacher', 'Student'];
 
   const filteredUsers = selectedRole ? users.filter(u => u.role === selectedRole) : users;
 
@@ -52,13 +57,45 @@ const UserListPage = () => {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Quản lý Người dùng & Vai trò</h1>
-          <p className="page-subtitle">Danh sách tất cả người dùng trong hệ thống</p>
+          <h1 className="page-title">{isManager ? 'Quản lý Người dùng' : 'Quản lý Người dùng & Vai trò'}</h1>
+          <p className="page-subtitle">{isManager ? 'Danh sách quản lý, giảng viên và học viên trong hệ thống' : 'Danh sách tất cả người dùng trong hệ thống'}</p>
         </div>
         <Link to="/admin/users/create" className="btn btn-primary">
           + Thêm người dùng
         </Link>
       </div>
+
+      {/* Tab Switcher (Only visible to Admin who has role permission to view roles) */}
+      {user?.role === 'Admin' && (
+        <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '20px', paddingBottom: '2px' }}>
+          <Link
+            to="/admin/users"
+            style={{
+              padding: '8px 16px',
+              textDecoration: 'none',
+              color: '#f8fafc',
+              fontWeight: '600',
+              borderBottom: '3px solid #6c63ff',
+              marginBottom: '-5px'
+            }}
+          >
+            Người dùng
+          </Link>
+          <Link
+            to="/admin/roles"
+            style={{
+              padding: '8px 16px',
+              textDecoration: 'none',
+              color: '#94a3b8',
+              fontWeight: '500',
+              borderBottom: '3px solid transparent',
+              marginBottom: '-5px'
+            }}
+          >
+            Vai trò
+          </Link>
+        </div>
+      )}
 
       {/* Bảng phân loại / Thống kê */}
       {!loading && users.length > 0 && (
@@ -108,35 +145,39 @@ const UserListPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user._id}>
+                {filteredUsers.map((u) => (
+                  <tr key={u._id}>
                     <td>
-                      <strong>{user.name}</strong>
+                      <strong>{u.name}</strong>
                     </td>
-                    <td>{user.email}</td>
+                    <td>{u.email}</td>
                     <td>
                       <span className="badge" style={{ backgroundColor: 'rgba(108, 99, 255, 0.1)', color: '#6c63ff' }}>
-                        {ROLE_LABELS[user.role] || user.role}
+                        {ROLE_LABELS[u.role] || u.role}
                       </span>
                     </td>
                     <td>
                       <span
                         className="badge"
                         style={{
-                          backgroundColor: user.isActive ? 'rgba(46, 213, 115, 0.1)' : 'rgba(255, 71, 87, 0.1)',
-                          color: user.isActive ? '#2ed573' : '#ff4757',
+                          backgroundColor: u.isActive ? 'rgba(46, 213, 115, 0.1)' : 'rgba(255, 71, 87, 0.1)',
+                          color: u.isActive ? '#2ed573' : '#ff4757',
                         }}
                       >
-                        {user.isActive ? 'Hoạt động' : 'Khóa'}
+                        {u.isActive ? 'Hoạt động' : 'Khóa'}
                       </span>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <Link to={`/admin/users/${user._id}/edit`} className="btn btn-icon btn-ghost">
-                        ✏️
-                      </Link>
-                      <button onClick={() => handleDelete(user._id)} className="btn btn-icon btn-ghost">
-                        🗑️
-                      </button>
+                      {!(isManager && u.role === 'Manager') && (
+                        <Link to={`/admin/users/${u._id}/edit`} className="btn btn-icon btn-ghost" title="Chỉnh sửa">
+                          ✏️
+                        </Link>
+                      )}
+                      {!isManager && (
+                        <button onClick={() => handleDelete(u._id)} className="btn btn-icon btn-ghost" title="Xóa">
+                          🗑️
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
