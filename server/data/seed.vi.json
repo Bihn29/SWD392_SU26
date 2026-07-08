@@ -775,5 +775,487 @@
       "subjectName": "JavaScript ES6+ hiện đại",
       "status": "Pending"
     }
+  ],
+  "questions": [
+    {
+      "subjectName": "Cơ bản về ReactJS",
+      "lessonTitle": "Bài kiểm tra: Cơ bản về ReactJS",
+      "content": "Câu hỏi 1: ReactJS là gì?",
+      "options": [
+        {
+          "text": "Một framework Backend",
+          "isCorrect": false
+        },
+        {
+          "text": "Một thư viện UI của JavaScript",
+          "isCorrect": true
+        },
+        {
+          "text": "Một ngôn ngữ lập trình",
+          "isCorrect": false
+        },
+        {
+          "text": "Một hệ quản trị CSDL",
+          "isCorrect": false
+        }
+      ],
+      "order": 1
+    },
+    {
+      "subjectName": "Cơ bản về ReactJS",
+      "lessonTitle": "Bài kiểm tra: Cơ bản về ReactJS",
+      "content": "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      "options": [
+        {
+          "text": "Node Package Manager",
+          "isCorrect": true
+        },
+        {
+          "text": "New Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "Node Process Maker",
+          "isCorrect": false
+        },
+        {
+          "text": "Network Package Module",
+          "isCorrect": false
+        }
+      ],
+      "order": 2
+    },
+    {
+      "subjectName": "Lập trình NodeJS Toàn tập",
+      "lessonTitle": "Bài kiểm tra: Lập trình NodeJS Toàn tập",
+      "content": "Câu hỏi 1: ReactJS là gì?",
+      "options": [
+        {
+          "text": "Một framework Backend",
+          "isCorrect": false
+        },
+        {
+          "text": "Một thư viện UI của JavaScript",
+          "isCorrect": true
+        },
+        {
+          "text": "Một ngôn ngữ lập trình",
+          "isCorrect": false
+        },
+        {
+          "text": "Một hệ quản trị CSDL",
+          "isCorrect": false
+        }
+      ],
+      "order": 1
+    },
+    {
+      "subjectName": "Lập trình NodeJS Toàn tập",
+      "lessonTitle": "Bài kiểm tra: Lập trình NodeJS Toàn tập",
+      "content": "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      "options": [
+        {
+          "text": "Node Package Manager",
+          "isCorrect": true
+        },
+        {
+          "text": "New Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "Node Process Maker",
+          "isCorrect": false
+        },
+        {
+          "text": "Network Package Module",
+          "isCorrect": false
+        }
+      ],
+      "order": 2
+    },
+    {
+      "subjectName": "MongoDB và Mongoose thực chiến",
+      "lessonTitle": "Bài kiểm tra: MongoDB và Mongoose thực chiến",
+      "content": "Câu hỏi 1: ReactJS là gì?",
+      "options": [
+        {
+          "text": "Một framework Backend",
+          "isCorrect": false
+        },
+        {
+          "text": "Một thư viện UI của JavaScript",
+          "isCorrect": true
+        },
+        {
+          "text": "Một ngôn ngữ lập trình",
+          "isCorrect": false
+        },
+        {
+          "text": "Một hệ quản trị CSDL",
+          "isCorrect": false
+        }
+      ],
+      "order": 1
+    },
+    {
+      "subjectName": "MongoDB và Mongoose thực chiến",
+      "lessonTitle": "Bài kiểm tra: MongoDB và Mongoose thực chiến",
+      "content": "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      "options": [
+        {
+          "text": "Node Package Manager",
+          "isCorrect": true
+        },
+        {
+          "text": "New Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "Node Process Maker",
+          "isCorrect": false
+        },
+        {
+          "text": "Network Package Module",
+          "isCorrect": false
+        }
+      ],
+      "order": 2
+    },
+    {
+      "subjectName": "Thiết kế UI/UX cho người mới bắt đầu",
+      "lessonTitle": "Bài kiểm tra: Thiết kế UI/UX cho người mới bắt đầu",
+      "content": "Câu hỏi 1: ReactJS là gì?",
+      "options": [
+        {
+          "text": "Một framework Backend",
+          "isCorrect": false
+        },
+        {
+          "text": "Một thư viện UI của JavaScript",
+          "isCorrect": true
+        },
+        {
+          "text": "Một ngôn ngữ lập trình",
+          "isCorrect": false
+        },
+        {
+          "text": "Một hệ quản trị CSDL",
+          "isCorrect": false
+        }
+      ],
+      "order": 1
+    },
+    {
+      "subjectName": "Thiết kế UI/UX cho người mới bắt đầu",
+      "lessonTitle": "Bài kiểm tra: Thiết kế UI/UX cho người mới bắt đầu",
+      "content": "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      "options": [
+        {
+          "text": "Node Package Manager",
+          "isCorrect": true
+        },
+        {
+          "text": "New Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "Node Process Maker",
+          "isCorrect": false
+        },
+        {
+          "text": "Network Package Module",
+          "isCorrect": false
+        }
+      ],
+      "order": 2
+    },
+    {
+      "subjectName": "Cấu trúc dữ liệu và giải thuật",
+      "lessonTitle": "Bài kiểm tra: Cấu trúc dữ liệu và giải thuật",
+      "content": "Câu hỏi 1: ReactJS là gì?",
+      "options": [
+        {
+          "text": "Một framework Backend",
+          "isCorrect": false
+        },
+        {
+          "text": "Một thư viện UI của JavaScript",
+          "isCorrect": true
+        },
+        {
+          "text": "Một ngôn ngữ lập trình",
+          "isCorrect": false
+        },
+        {
+          "text": "Một hệ quản trị CSDL",
+          "isCorrect": false
+        }
+      ],
+      "order": 1
+    },
+    {
+      "subjectName": "Cấu trúc dữ liệu và giải thuật",
+      "lessonTitle": "Bài kiểm tra: Cấu trúc dữ liệu và giải thuật",
+      "content": "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      "options": [
+        {
+          "text": "Node Package Manager",
+          "isCorrect": true
+        },
+        {
+          "text": "New Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "Node Process Maker",
+          "isCorrect": false
+        },
+        {
+          "text": "Network Package Module",
+          "isCorrect": false
+        }
+      ],
+      "order": 2
+    },
+    {
+      "subjectName": "Lập trình di động với React Native",
+      "lessonTitle": "Bài kiểm tra: Lập trình di động với React Native",
+      "content": "Câu hỏi 1: ReactJS là gì?",
+      "options": [
+        {
+          "text": "Một framework Backend",
+          "isCorrect": false
+        },
+        {
+          "text": "Một thư viện UI của JavaScript",
+          "isCorrect": true
+        },
+        {
+          "text": "Một ngôn ngữ lập trình",
+          "isCorrect": false
+        },
+        {
+          "text": "Một hệ quản trị CSDL",
+          "isCorrect": false
+        }
+      ],
+      "order": 1
+    },
+    {
+      "subjectName": "Lập trình di động với React Native",
+      "lessonTitle": "Bài kiểm tra: Lập trình di động với React Native",
+      "content": "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      "options": [
+        {
+          "text": "Node Package Manager",
+          "isCorrect": true
+        },
+        {
+          "text": "New Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "Node Process Maker",
+          "isCorrect": false
+        },
+        {
+          "text": "Network Package Module",
+          "isCorrect": false
+        }
+      ],
+      "order": 2
+    },
+    {
+      "subjectName": "Xây dựng RESTful API với ExpressJS",
+      "lessonTitle": "Bài kiểm tra: Xây dựng RESTful API với ExpressJS",
+      "content": "Câu hỏi 1: ReactJS là gì?",
+      "options": [
+        {
+          "text": "Một framework Backend",
+          "isCorrect": false
+        },
+        {
+          "text": "Một thư viện UI của JavaScript",
+          "isCorrect": true
+        },
+        {
+          "text": "Một ngôn ngữ lập trình",
+          "isCorrect": false
+        },
+        {
+          "text": "Một hệ quản trị CSDL",
+          "isCorrect": false
+        }
+      ],
+      "order": 1
+    },
+    {
+      "subjectName": "Xây dựng RESTful API với ExpressJS",
+      "lessonTitle": "Bài kiểm tra: Xây dựng RESTful API với ExpressJS",
+      "content": "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      "options": [
+        {
+          "text": "Node Package Manager",
+          "isCorrect": true
+        },
+        {
+          "text": "New Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "Node Process Maker",
+          "isCorrect": false
+        },
+        {
+          "text": "Network Package Module",
+          "isCorrect": false
+        }
+      ],
+      "order": 2
+    },
+    {
+      "subjectName": "Kiểm thử phần mềm cơ bản",
+      "lessonTitle": "Bài kiểm tra: Kiểm thử phần mềm cơ bản",
+      "content": "Câu hỏi 1: ReactJS là gì?",
+      "options": [
+        {
+          "text": "Một framework Backend",
+          "isCorrect": false
+        },
+        {
+          "text": "Một thư viện UI của JavaScript",
+          "isCorrect": true
+        },
+        {
+          "text": "Một ngôn ngữ lập trình",
+          "isCorrect": false
+        },
+        {
+          "text": "Một hệ quản trị CSDL",
+          "isCorrect": false
+        }
+      ],
+      "order": 1
+    },
+    {
+      "subjectName": "Kiểm thử phần mềm cơ bản",
+      "lessonTitle": "Bài kiểm tra: Kiểm thử phần mềm cơ bản",
+      "content": "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      "options": [
+        {
+          "text": "Node Package Manager",
+          "isCorrect": true
+        },
+        {
+          "text": "New Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "Node Process Maker",
+          "isCorrect": false
+        },
+        {
+          "text": "Network Package Module",
+          "isCorrect": false
+        }
+      ],
+      "order": 2
+    },
+    {
+      "subjectName": "Git và GitHub cho sinh viên",
+      "lessonTitle": "Bài kiểm tra: Git và GitHub cho sinh viên",
+      "content": "Câu hỏi 1: ReactJS là gì?",
+      "options": [
+        {
+          "text": "Một framework Backend",
+          "isCorrect": false
+        },
+        {
+          "text": "Một thư viện UI của JavaScript",
+          "isCorrect": true
+        },
+        {
+          "text": "Một ngôn ngữ lập trình",
+          "isCorrect": false
+        },
+        {
+          "text": "Một hệ quản trị CSDL",
+          "isCorrect": false
+        }
+      ],
+      "order": 1
+    },
+    {
+      "subjectName": "Git và GitHub cho sinh viên",
+      "lessonTitle": "Bài kiểm tra: Git và GitHub cho sinh viên",
+      "content": "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      "options": [
+        {
+          "text": "Node Package Manager",
+          "isCorrect": true
+        },
+        {
+          "text": "New Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "Node Process Maker",
+          "isCorrect": false
+        },
+        {
+          "text": "Network Package Module",
+          "isCorrect": false
+        }
+      ],
+      "order": 2
+    },
+    {
+      "subjectName": "JavaScript ES6+ hiện đại",
+      "lessonTitle": "Bài kiểm tra: JavaScript ES6+ hiện đại",
+      "content": "Câu hỏi 1: ReactJS là gì?",
+      "options": [
+        {
+          "text": "Một framework Backend",
+          "isCorrect": false
+        },
+        {
+          "text": "Một thư viện UI của JavaScript",
+          "isCorrect": true
+        },
+        {
+          "text": "Một ngôn ngữ lập trình",
+          "isCorrect": false
+        },
+        {
+          "text": "Một hệ quản trị CSDL",
+          "isCorrect": false
+        }
+      ],
+      "order": 1
+    },
+    {
+      "subjectName": "JavaScript ES6+ hiện đại",
+      "lessonTitle": "Bài kiểm tra: JavaScript ES6+ hiện đại",
+      "content": "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      "options": [
+        {
+          "text": "Node Package Manager",
+          "isCorrect": true
+        },
+        {
+          "text": "New Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "Node Process Maker",
+          "isCorrect": false
+        },
+        {
+          "text": "Network Package Module",
+          "isCorrect": false
+        }
+      ],
+      "order": 2
+    }
   ]
 }

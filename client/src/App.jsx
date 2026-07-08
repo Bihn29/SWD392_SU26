@@ -19,6 +19,9 @@ import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage';
 import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
 import StudentHomePage from './pages/student/StudentHomePage';
 import MyCoursesPage from './pages/student/MyCoursesPage';
+import StudentQuizPage from './pages/student/StudentQuizPage';
+
+import LearningWorkspacePage from './pages/student/LearningWorkspacePage';
 
 // Pages - Dashboard
 import DashboardPage from './pages/admin/DashboardPage';
@@ -248,7 +251,9 @@ const AppRoutes = () => (
     >
       <Route index element={<Navigate to="home" replace />} />
       <Route path="home" element={<StudentHomePage />} />
+      <Route path="quiz" element={<StudentQuizPage />} />
       <Route path="my-courses" element={<MyCoursesPage />} />
+      <Route path="my-courses/:id" element={<LearningWorkspacePage />} />
       <Route path="profile" element={<TeacherProfilePage />} />
     </Route>
 

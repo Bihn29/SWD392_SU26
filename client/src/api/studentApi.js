@@ -18,3 +18,19 @@ export const checkEnrollment = async (courseId) => {
   const response = await axiosInstance.get(`${API_URL}/enrollment-status/${courseId}`);
   return response;
 };
+
+// Lessons & Quiz
+export const getCourseLessons = async (courseId) => {
+  const response = await axiosInstance.get(`${API_URL}/courses/${courseId}/lessons`);
+  return response;
+};
+
+export const getQuizQuestions = async (courseId, lessonId) => {
+  const response = await axiosInstance.get(`${API_URL}/courses/${courseId}/lessons/${lessonId}/questions`);
+  return response;
+};
+
+export const getStudentQuizzes = async () => {
+  const response = await axiosInstance.get(`${API_URL}/quizzes`);
+  return response;
+};
