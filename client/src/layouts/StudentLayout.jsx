@@ -5,7 +5,7 @@ import { getRoleCode } from '../utils/roleRedirect';
 
 const NAV_ITEMS = [
   { to: '/student/home', icon: '🏠', label: 'Trang chủ' },
-  { to: '/courses', icon: '📚', label: 'Khóa học' },
+  { to: '/student/quiz', icon: '✍️', label: 'Quiz' },
   { to: '/student/my-courses', icon: '🎓', label: 'Khóa học của tôi' },
   { to: '/student/profile', icon: '👤', label: 'Hồ sơ' },
 ];

@@ -2,6 +2,7 @@ const Subject = require('../models/Subject');
 const Registration = require('../models/Registration');
 const Lesson = require('../models/Lesson');
 const { getPublicSubjects } = require('../services/subjectService');
+const Question = require('../models/Question');
 
 exports.getStudentHome = async (req, res, next) => {
   try {
@@ -108,6 +109,100 @@ exports.checkEnrollment = async (req, res, next) => {
         registration: registration || null
       }
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getCourseLessons = async (req, res, next) => {
+  try {
+    const studentId = req.user._id;
+    const { courseId } = req.params;
+
+    // Check enrollment
+    const registration = await Registration.findOne({ student: studentId, subject: courseId, status: 'Approved' });
+    if (!registration) {
+      return res.status(403).json({ success: false, message: 'Bạn chưa đăng ký khóa học này hoặc chưa được duyệt.' });
+    }
+
+    // Get active lessons for this course
+    const lessons = await Lesson.find({ subject: courseId, status: 'Active' })
+      .sort({ order: 1 })
+      .lean();
+
+    res.status(200).json({ success: true, data: lessons });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getQuizQuestions = async (req, res, next) => {
+  try {
+    const studentId = req.user._id;
+    const { courseId, lessonId } = req.params;
+
+    // Check enrollment
+    const registration = await Registration.findOne({ student: studentId, subject: courseId, status: 'Approved' });
+    if (!registration) {
+      return res.status(403).json({ success: false, message: 'Bạn chưa đăng ký khóa học này hoặc chưa được duyệt.' });
+    }
+
+    // Check if lesson exists and is active
+    const lesson = await Lesson.findOne({ _id: lessonId, subject: courseId, status: 'Active', type: 'Quiz' });
+    if (!lesson) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy bài Quiz.' });
+    }
+
+    // Get questions but exclude isCorrect field from options
+    let questions = await Question.find({ lesson: lessonId }).lean();
+    
+    questions = questions.map(q => {
+      if (q.options) {
+        q.options = q.options.map(opt => ({ _id: opt._id, text: opt.text }));
+      }
+      return q;
+    });
+
+    res.status(200).json({ success: true, data: questions });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getStudentQuizzes = async (req, res, next) => {
+  try {
+    const studentId = req.user._id;
+
+    // Lấy các khóa học đã đăng ký
+    const registrations = await Registration.find({ student: studentId, status: 'Approved' }).lean();
+    const subjectIds = registrations.map(r => r.subject);
+
+    // Lấy các bài Quiz của những khóa học đó
+    const quizLessons = await Lesson.find({ 
+      subject: { $in: subjectIds }, 
+      status: 'Active', 
+      type: 'Quiz' 
+    }).populate('subject', 'name').lean();
+
+    // Lấy trạng thái hoàn thành (Progress) của học viên
+    const Progress = require('../models/Progress'); // ensure imported
+    const progresses = await Progress.find({ student: studentId }).lean();
+    const progressMap = {};
+    progresses.forEach(p => {
+      progressMap[p.lesson.toString()] = p;
+    });
+
+    // Gắn thông tin hoàn thành vào quiz
+    const data = quizLessons.map(quiz => ({
+      _id: quiz._id,
+      title: quiz.title,
+      subjectId: quiz.subject._id,
+      subjectName: quiz.subject.name,
+      isCompleted: progressMap[quiz._id.toString()]?.isCompleted || false,
+      score: progressMap[quiz._id.toString()]?.score
+    }));
+
+    res.status(200).json({ success: true, data });
   } catch (error) {
     next(error);
   }
