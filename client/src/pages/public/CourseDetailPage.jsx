@@ -4,6 +4,7 @@ import { getPublicSubjectById } from '../../api/subjectApi';
 import { enrollCourse, checkEnrollment } from '../../api/studentApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/common/Toast';
+import { getRoleCode } from '../../utils/roleRedirect';
 
 const CourseDetailPage = () => {
   const { id } = useParams();
@@ -25,7 +26,8 @@ const CourseDetailPage = () => {
         }
 
         // Nếu đã đăng nhập là Student, kiểm tra trạng thái đăng ký
-        if (isAuthenticated && user?.role === 'Student') {
+        const roleCode = getRoleCode(user);
+        if (isAuthenticated && roleCode === 'Student') {
           const enrollRes = await checkEnrollment(id);
           if (enrollRes.data && enrollRes.data.data) {
             setEnrollmentStatus(enrollRes.data.data.isEnrolled ? 'enrolled' : 'not_enrolled');
@@ -47,7 +49,8 @@ const CourseDetailPage = () => {
       return;
     }
 
-    if (user?.role !== 'Student') {
+    const roleCode = getRoleCode(user);
+    if (roleCode !== 'Student') {
       toast.error('Từ chối truy cập', 'Chỉ học viên (Student) mới có thể đăng ký khóa học.');
       return;
     }

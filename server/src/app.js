@@ -6,6 +6,8 @@ const authRoutes = require('./routes/authRoutes');
 const subjectRoutes = require('./routes/subjectRoutes');
 const roleRoutes = require('./routes/roleRoutes');
 const { errorMiddleware, notFoundMiddleware } = require('./middlewares/errorMiddleware');
+const { protect } = require('./middlewares/authMiddleware');
+const { requireRole } = require('./middlewares/roleMiddleware');
 
 const app = express();
 
@@ -41,11 +43,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/student', require('./routes/studentRoutes'));
-app.use('/api/admin/roles', roleRoutes);
-app.use('/api/admin/users', require('./routes/userRoutes'));
-app.use('/api/admin/subjects/:subjectId/lessons', require('./routes/lessonRoutes'));
-app.use('/api/admin/lessons', require('./routes/lessonRoutes'));
-app.use('/api/admin/subjects/:subjectId/students', require('./routes/registrationRoutes'));
+app.use('/api/admin/roles', protect, requireRole('Admin'), roleRoutes);
+app.use('/api/admin/users', protect, requireRole('Admin', 'Manager'), require('./routes/userRoutes'));
+app.use('/api/admin/subjects/:subjectId/lessons', protect, requireRole('Admin', 'Manager'), require('./routes/lessonRoutes'));
+app.use('/api/admin/lessons', protect, requireRole('Admin', 'Manager'), require('./routes/lessonRoutes'));
+app.use('/api/admin/subjects/:subjectId/students', protect, requireRole('Admin', 'Manager'), require('./routes/registrationRoutes'));
 app.use('/api/admin/dashboard', require('./routes/dashboardRoutes'));
 
 // ─── Teacher Routes ──────────────────────────────────────────────────────────

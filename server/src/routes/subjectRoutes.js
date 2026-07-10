@@ -58,18 +58,18 @@ router.get('/', validateSubjectQuery, getAllSubjects);
 router.get('/:id', validateSubjectId, getSubjectById);
 
 // POST /api/subjects  (Admin only – BR-SUB-005)
-router.post('/', roleMiddleware('Admin'), validateCreateSubject, createSubject);
+router.post('/', roleMiddleware('Admin', 'Manager'), validateCreateSubject, createSubject);
 
 // PUT /api/subjects/:id  (Admin + Expert – BR-SUB-006, BR-SUB-007)
-router.put('/:id', roleMiddleware('Admin', 'Expert'), validateSubjectId, validateUpdateSubject, updateSubject);
+router.put('/:id', roleMiddleware('Admin', 'Expert', 'Manager'), validateSubjectId, validateUpdateSubject, updateSubject);
 
 // DELETE /api/subjects/:id  (Admin only – BR-SUB-009, BR-SUB-010)
 router.delete('/:id', roleMiddleware('Admin'), validateSubjectId, deleteSubject);
 
 // PATCH /api/subjects/:id/publish  (Admin only – BR-SUB-008)
-router.patch('/:id/publish', roleMiddleware('Admin'), validateSubjectId, publishSubject);
+router.patch('/:id/publish', roleMiddleware('Admin', 'Manager'), validateSubjectId, publishSubject);
 
 // PATCH /api/subjects/:id/unpublish  (Admin only – BR-SUB-008)
-router.patch('/:id/unpublish', roleMiddleware('Admin'), validateSubjectId, unpublishSubject);
+router.patch('/:id/unpublish', roleMiddleware('Admin', 'Manager'), validateSubjectId, unpublishSubject);
 
 module.exports = router;

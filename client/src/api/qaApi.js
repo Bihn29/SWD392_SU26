@@ -17,6 +17,7 @@ export const createQA = async (subjectId, lessonId, data) => {
   return response;
 };
 
+
 export const resolveQA = async (id) => {
   const response = await axiosInstance.patch(`${API_URL}/${id}/resolve`);
   return response;

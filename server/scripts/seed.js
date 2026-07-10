@@ -7,19 +7,20 @@ const User = require('../src/models/User');
 const Subject = require('../src/models/Subject');
 const Lesson = require('../src/models/Lesson');
 const Registration = require('../src/models/Registration');
+const Question = require('../src/models/Question');
 
 const seedDataPath = path.join(__dirname, '../data/seed.vi.json');
 
 const seedDatabase = async () => {
   try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/onlinelearn';
+    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/online_learn';
     console.log('Connecting to MongoDB...');
     await mongoose.connect(mongoUri);
     console.log('Connected successfully!');
 
     console.log(`Reading seed data from ${seedDataPath}...`);
     const seedData = JSON.parse(fs.readFileSync(seedDataPath, 'utf-8'));
-    const { users, subjects, lessons, registrations } = seedData;
+    const { users, subjects, lessons, registrations, questions } = seedData;
 
     console.log('Clearing existing Collections...');
     await User.deleteMany({});
@@ -27,6 +28,7 @@ const seedDatabase = async () => {
     await Subject.deleteMany({});
     await Lesson.deleteMany({});
     await Registration.deleteMany({});
+    await Question.deleteMany({});
 
     console.log('Preparing users...');
     const usersWithPasswords = users.map((u) => {
@@ -93,6 +95,31 @@ const seedDatabase = async () => {
       }
     });
     await Registration.create(uniqueRegs);
+
+    console.log('Inserting Questions...');
+    // We need to map lesson titles to lesson IDs
+    const allLessons = await Lesson.find({});
+    const lessonMap = {};
+    allLessons.forEach(l => {
+      // Key format: subjectId_title
+      lessonMap[`${l.subject}_${l.title}`] = l._id;
+    });
+
+    if (questions && questions.length > 0) {
+      const mappedQuestions = questions.map(q => {
+        const subjectId = subjectMap[q.subjectName];
+        const lessonId = lessonMap[`${subjectId}_${q.lessonTitle}`];
+        return {
+          ...q,
+          lesson: lessonId,
+          createdBy: adminId,
+          updatedBy: adminId
+        };
+      });
+      // Filter out invalid ones
+      const validQuestions = mappedQuestions.filter(q => q.lesson);
+      await Question.create(validQuestions);
+    }
 
     console.log('Database seeded completely!');
     process.exit(0);

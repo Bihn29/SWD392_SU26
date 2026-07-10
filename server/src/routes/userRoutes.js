@@ -7,18 +7,21 @@ const {
   deleteUser
 } = require('../controllers/userController');
 
+const { protect } = require('../middlewares/authMiddleware');
+const { requireRole } = require('../middlewares/roleMiddleware');
+
 const router = express.Router();
 
-// Currently bypassing JWT Auth for development, but in a real app
-// we would add authMiddleware here.
+// All routes are protected
+router.use(protect);
 
 router.route('/')
-  .get(getUsers)
-  .post(createUser);
+  .get(requireRole('Admin', 'Manager'), getUsers)
+  .post(requireRole('Admin', 'Manager'), createUser);
 
 router.route('/:id')
-  .get(getUserById)
-  .put(updateUser)
-  .delete(deleteUser);
+  .get(requireRole('Admin', 'Manager'), getUserById)
+  .put(requireRole('Admin', 'Manager'), updateUser)
+  .delete(requireRole('Admin'), deleteUser);
 
 module.exports = router;

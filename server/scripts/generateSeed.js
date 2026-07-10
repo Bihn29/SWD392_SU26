@@ -83,6 +83,37 @@ publishedSubjects.forEach((subj, idx) => {
   });
 });
 
-const data = { users, subjects, lessons, registrations };
+const questions = [];
+
+lessons.forEach(les => {
+  if (les.type === 'Quiz') {
+    questions.push({
+      subjectName: les.subjectName,
+      lessonTitle: les.title,
+      content: "Câu hỏi 1: ReactJS là gì?",
+      options: [
+        { text: "Một framework Backend", isCorrect: false },
+        { text: "Một thư viện UI của JavaScript", isCorrect: true },
+        { text: "Một ngôn ngữ lập trình", isCorrect: false },
+        { text: "Một hệ quản trị CSDL", isCorrect: false }
+      ],
+      order: 1
+    });
+    questions.push({
+      subjectName: les.subjectName,
+      lessonTitle: les.title,
+      content: "Câu hỏi 2: NPM là viết tắt của từ gì?",
+      options: [
+        { text: "Node Package Manager", isCorrect: true },
+        { text: "New Project Manager", isCorrect: false },
+        { text: "Node Process Maker", isCorrect: false },
+        { text: "Network Package Module", isCorrect: false }
+      ],
+      order: 2
+    });
+  }
+});
+
+const data = { users, subjects, lessons, registrations, questions };
 fs.writeFileSync(path.join(__dirname, '../data/seed.vi.json'), JSON.stringify(data, null, 2), 'utf-8');
 console.log('Done generating seed.vi.json');

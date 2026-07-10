@@ -19,6 +19,9 @@ import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage';
 import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
 import StudentHomePage from './pages/student/StudentHomePage';
 import MyCoursesPage from './pages/student/MyCoursesPage';
+import StudentQuizPage from './pages/student/StudentQuizPage';
+
+import LearningWorkspacePage from './pages/student/LearningWorkspacePage';
 
 // Pages - Dashboard
 import DashboardPage from './pages/admin/DashboardPage';
@@ -32,6 +35,10 @@ import SubjectDetailPage from './pages/admin/subjects/SubjectDetailPage';
 // Pages - Users & Roles
 import UserListPage from './pages/admin/users/UserListPage';
 import UserFormPage from './pages/admin/users/UserFormPage';
+import RoleListPage from './pages/admin/roles/RoleListPage';
+import RoleCreatePage from './pages/admin/roles/RoleCreatePage';
+import RoleDetailPage from './pages/admin/roles/RoleDetailPage';
+import RoleEditPage from './pages/admin/roles/RoleEditPage';
 
 // ─── Route Guards ─────────────────────────────────────────────────────────────
 import { getRoleCode } from './utils/roleRedirect';
@@ -142,7 +149,7 @@ const AppRoutes = () => (
       <Route
         path="subjects/create"
         element={
-          <RoleRoute roles={['Admin']}>
+          <RoleRoute roles={['Admin', 'Manager']}>
             <SubjectCreatePage />
           </RoleRoute>
         }
@@ -172,6 +179,40 @@ const AppRoutes = () => (
         element={
           <RoleRoute roles={['Admin', 'Manager']}>
             <UserFormPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Roles */}
+      <Route
+        path="roles"
+        element={
+          <RoleRoute roles={['Admin']}>
+            <RoleListPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="roles/create"
+        element={
+          <RoleRoute roles={['Admin']}>
+            <RoleCreatePage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="roles/:id"
+        element={
+          <RoleRoute roles={['Admin']}>
+            <RoleDetailPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="roles/:id/edit"
+        element={
+          <RoleRoute roles={['Admin']}>
+            <RoleEditPage />
           </RoleRoute>
         }
       />
@@ -210,7 +251,9 @@ const AppRoutes = () => (
     >
       <Route index element={<Navigate to="home" replace />} />
       <Route path="home" element={<StudentHomePage />} />
+      <Route path="quiz" element={<StudentQuizPage />} />
       <Route path="my-courses" element={<MyCoursesPage />} />
+      <Route path="my-courses/:id" element={<LearningWorkspacePage />} />
       <Route path="profile" element={<TeacherProfilePage />} />
     </Route>
 

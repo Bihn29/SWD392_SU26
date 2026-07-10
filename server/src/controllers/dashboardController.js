@@ -29,23 +29,29 @@ exports.getOverview = async (req, res) => {
       Registration.countDocuments({ registrationStatus: 'Approved' })
     ]);
 
+    const stats = {
+      totalUsers,
+      totalAdmins,
+      totalManagers,
+      totalTeachers,
+      totalStudents,
+      totalSubjects,
+      publishedSubjects,
+      draftSubjects,
+      totalLessons,
+      totalEnrolledStudents
+    };
+
+    // Manager role restriction: hide admin counts
+    if (req.user && req.user.role === 'Manager') {
+      stats.totalAdmins = 0;
+      stats.totalUsers = totalUsers - totalAdmins;
+    }
+
     res.status(200).json({
       success: true,
       message: 'Lấy dữ liệu tổng quan thành công',
-      data: {
-        stats: {
-          totalUsers,
-          totalAdmins,
-          totalManagers,
-          totalTeachers,
-          totalStudents,
-          totalSubjects,
-          publishedSubjects,
-          draftSubjects,
-          totalLessons,
-          totalEnrolledStudents
-        }
-      }
+      data: { stats }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Lỗi server khi tải overview' });
@@ -57,9 +63,17 @@ exports.getDetails = async (req, res) => {
     const { type } = req.query;
     let items = [];
 
+    // Manager role restriction: cannot access Admin records
+    if (req.user && req.user.role === 'Manager') {
+      if (type === 'admins') {
+        return res.status(403).json({ success: false, message: 'Bạn không có quyền truy cập thông tin quản trị viên.' });
+      }
+    }
+
     switch (type) {
       case 'users':
-        items = await User.find().select('-password').sort({ createdAt: -1 }).lean();
+        const query = (req.user && req.user.role === 'Manager') ? { role: { $ne: 'Admin' } } : {};
+        items = await User.find(query).select('-password').sort({ createdAt: -1 }).lean();
         break;
       case 'admins':
         items = await User.find({ role: 'Admin' }).select('-password').sort({ createdAt: -1 }).lean();

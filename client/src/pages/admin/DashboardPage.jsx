@@ -1,8 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getDashboardOverview, getDashboardDetails } from '../../api/dashboardApi';
 import StatusBadge from '../../components/common/StatusBadge';
+import { useAuth } from '../../contexts/AuthContext';
+import { getRoleCode } from '../../utils/roleRedirect';
 
 const DashboardPage = () => {
+  const { user } = useAuth();
+  const roleCode = getRoleCode(user);
+  const isManager = roleCode === 'Manager';
   const [overview, setOverview] = useState(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [overviewError, setOverviewError] = useState('');
@@ -63,6 +68,8 @@ const DashboardPage = () => {
     { id: 'lessons', title: 'Tổng số bài học', count: overview?.totalLessons || 0, desc: 'Toàn bộ bài học', icon: '📖' },
     { id: 'enrolledStudents', title: 'Tổng số học viên đang học', count: overview?.totalEnrolledStudents || 0, desc: 'Đã duyệt vào lớp', icon: '🎟️' },
   ];
+
+  const filteredCards = isManager ? cards.filter(c => c.id !== 'admins') : cards;
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
   const formatDate = (d) => (d ? new Date(d).toLocaleDateString('en-GB') : '—');
@@ -229,7 +236,7 @@ const DashboardPage = () => {
     <div>
       <div className="page-header">
         <div className="page-header-left">
-          <h1 className="page-title">Bảng điều khiển Admin</h1>
+          <h1 className="page-title">{isManager ? 'Bảng điều khiển Quản lý' : 'Bảng điều khiển Admin'}</h1>
           <p className="page-subtitle">Tổng quan hệ thống OnlineLearn</p>
         </div>
       </div>
@@ -291,7 +298,7 @@ const DashboardPage = () => {
 
       {/* ── Cards Grid ── */}
       <div className="dashboard-grid">
-        {cards.map((card) => (
+        {filteredCards.map((card) => (
           <div
             key={card.id}
             className={`dashboard-card ${activeCard === card.id ? 'active' : ''}`}

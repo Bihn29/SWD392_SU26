@@ -4,6 +4,7 @@ import { getSubjects, deleteSubject, publishSubject, unpublishSubject } from '..
 import { getTeacherCourses, deleteTeacherCourse } from '../../../api/teacherApi';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/common/Toast';
+import { getRoleCode } from '../../../utils/roleRedirect';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmModal from '../../../components/common/ConfirmModal';
@@ -21,7 +22,10 @@ const SubjectListPage = ({ isTeacher = false }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
-  const isAdmin = user?.role === 'Admin';
+  const roleCode = getRoleCode(user);
+  const isAdmin = roleCode === 'Admin';
+  const isManager = roleCode === 'Manager';
+  const canPublish = isAdmin || isManager;
   const basePath = isTeacher ? '/teacher/courses' : '/admin/subjects';
 
   // ─── State ──────────────────────────────────────────────────────
@@ -76,7 +80,7 @@ const SubjectListPage = ({ isTeacher = false }) => {
 
   // Fetch stats separately (all statuses)
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin && !isManager) return;
     (async () => {
       try {
         const [all, pub, draft, inactive] = await Promise.all([
@@ -93,7 +97,7 @@ const SubjectListPage = ({ isTeacher = false }) => {
         });
       } catch { }
     })();
-  }, [isAdmin]);
+  }, [isAdmin, isManager]);
 
   // ─── Handlers ───────────────────────────────────────────────────
   const handleSearch = (e) => {
@@ -180,15 +184,15 @@ const SubjectListPage = ({ isTeacher = false }) => {
           <h1 className="page-title">{isTeacher ? 'Khóa học của tôi' : 'Quản lý khóa học'}</h1>
           <p className="page-subtitle">{isTeacher ? 'Quản lý các khóa học do bạn phụ trách' : 'Quản lý tất cả môn học và khóa học trong hệ thống'}</p>
         </div>
-        {(isAdmin || isTeacher) && (
+        {(isAdmin || isManager || isTeacher) && (
           <Link to={`${basePath}/create`} className="btn btn-primary" id="add-course-btn">
             ✨ Thêm khóa học mới
           </Link>
         )}
       </div>
 
-      {/* ── Stats Cards (Admin only) ── */}
-      {isAdmin && (
+      {/* ── Stats Cards (Admin/Manager) ── */}
+      {(isAdmin || isManager) && (
         <div className="stats-grid">
           {[
             { label: 'Tổng số khóa học', value: stats.total, icon: '📚', color: 'var(--accent-primary)' },
@@ -413,7 +417,7 @@ const SubjectListPage = ({ isTeacher = false }) => {
                         >
                           ✏️
                         </Link>
-                        {isAdmin && subject.status !== 'Published' && subject.status !== 'Inactive' && (
+                        {canPublish && subject.status !== 'Published' && subject.status !== 'Inactive' && (
                           <button
                             className="btn btn-success btn-sm"
                             onClick={() => openModal('publish', subject)}
@@ -423,7 +427,7 @@ const SubjectListPage = ({ isTeacher = false }) => {
                             🚀
                           </button>
                         )}
-                        {isAdmin && subject.status === 'Published' && (
+                        {canPublish && subject.status === 'Published' && (
                           <button
                             className="btn btn-warning btn-sm"
                             onClick={() => openModal('unpublish', subject)}
