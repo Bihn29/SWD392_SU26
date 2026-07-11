@@ -19,8 +19,13 @@
       "subjects:create",
       "subjects:update",
       "subjects:publish",
+      "lessons:view",
+      "lessons:create",
+      "lessons:update",
+      "lessons:delete",
       "registrations:view",
       "registrations:update",
+      "uploads:create",
       "reports:view"
     ],
     "status": "Active",
@@ -32,6 +37,7 @@
     "description": "Quản lý nội dung khóa học, bài học, câu hỏi và quiz được phân công.",
     "permissions": [
       "subjects:view",
+      "subjects:create",
       "subjects:update",
       "lessons:view",
       "lessons:create",
@@ -43,7 +49,10 @@
       "questions:view",
       "questions:create",
       "questions:update",
-      "questions:delete"
+      "questions:delete",
+      "registrations:view",
+      "registrations:update",
+      "uploads:create"
     ],
     "status": "Active",
     "isSystemRole": true

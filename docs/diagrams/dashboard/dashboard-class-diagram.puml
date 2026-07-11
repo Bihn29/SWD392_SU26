@@ -1,0 +1,52 @@
+@startuml
+
+package "Dashboard Module" {
+  class DashboardRoutes {
+    + GET /api/admin/dashboard/overview
+    + GET /api/admin/dashboard/details
+  }
+
+  class TeacherRoutes {
+    + GET /api/teacher/dashboard
+  }
+
+  class DashboardController {
+    + getOverview(req, res, next)
+    + getDetails(req, res, next)
+  }
+
+  class TeacherController {
+    + getTeacherDashboard(req, res, next)
+  }
+
+  class UserModel {
+    + countDocuments()
+  }
+
+  class SubjectModel {
+    + countDocuments()
+    + find()
+  }
+
+  class LessonModel {
+    + countDocuments()
+  }
+
+  class RegistrationModel {
+    + countDocuments()
+  }
+}
+
+DashboardRoutes --> DashboardController : Routes to
+TeacherRoutes --> TeacherController : Routes to
+
+DashboardController --> UserModel : Aggregate
+DashboardController --> SubjectModel : Aggregate
+DashboardController --> LessonModel : Aggregate
+DashboardController --> RegistrationModel : Aggregate
+
+TeacherController --> SubjectModel : Aggregate
+TeacherController --> LessonModel : Aggregate
+TeacherController --> RegistrationModel : Aggregate
+
+@enduml

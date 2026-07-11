@@ -29,6 +29,12 @@ export const getRedirectPathByRole = (user) => {
     case "Student":
       return "/student";
     default:
+      if (user?.permissions?.includes('dashboard:view') || user?.role?.permissions?.includes('dashboard:view')) {
+        return "/admin/dashboard";
+      }
+      if (user?.permissions?.includes('subjects:view') || user?.role?.permissions?.includes('subjects:view')) {
+        return "/admin/subjects";
+      }
       return "/";
   }
 };

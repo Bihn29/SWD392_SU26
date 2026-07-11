@@ -4,10 +4,9 @@ import { ROLE_LABELS } from '../utils/statusLabels';
 import { getRoleCode } from '../utils/roleRedirect';
 
 const NAV_ITEMS = [
-  { to: '/admin/dashboard', icon: '📊', label: 'Tổng quan', roles: ['Admin', 'Expert', 'Manager', 'Teacher'] },
-  { to: '/admin/users', icon: '👥', label: 'Người dùng & Vai trò', roles: ['Admin', 'Manager'] },
-  { to: '/admin/subjects', icon: '📚', label: 'Quản lý khóa học', roles: ['Admin', 'Expert', 'Manager', 'Teacher'] },
-  { to: '/admin/settings', icon: '⚙️', label: 'Cài đặt', roles: ['Admin'] },
+  { to: '/admin/dashboard', icon: '📊', label: 'Tổng quan', roles: ['Admin', 'Manager'], permission: 'dashboard:view' },
+  { to: '/admin/users', icon: '👥', label: 'Người dùng & Vai trò', roles: ['Admin', 'Manager'], permission: 'users:view' },
+  { to: '/admin/subjects', icon: '📚', label: 'Quản lý khóa học', roles: ['Admin', 'Manager'], permission: 'subjects:view' },
 ];
 
 const AdminLayout = () => {
@@ -32,6 +31,7 @@ const AdminLayout = () => {
     .slice(0, 2) || '??';
 
   const roleCode = getRoleCode(user) || 'Admin';
+  const permissions = user?.permissions || user?.role?.permissions || [];
 
   return (
     <div className="admin-layout">
@@ -45,7 +45,7 @@ const AdminLayout = () => {
 
         <nav className="sidebar-nav">
           <div className="sidebar-section-label">Quản lý</div>
-          {NAV_ITEMS.filter(item => item.roles.includes(roleCode)).map(({ to, icon, label }) => {
+          {NAV_ITEMS.filter(item => item.roles.includes(roleCode) || (permissions.includes('*') || permissions.includes(item.permission))).map(({ to, icon, label }) => {
             const displayLabel = (roleCode === 'Manager' && label === 'Người dùng & Vai trò') ? 'Người dùng' : label;
             return (
               <NavLink

@@ -37,8 +37,35 @@ const PERMISSIONS = {
   PROFILE_UPDATE: 'profile:update',
 
   REPORTS_VIEW: 'reports:view',
+
+  ROLES_MANAGE: 'roles:manage',
+  UPLOAD_CREATE: 'uploads:create',
+};
+
+// Fallback permissions keep authentication usable during a first deployment
+// before the Role collection has been seeded. The database Role document is
+// authoritative once it exists.
+const DEFAULT_ROLE_PERMISSIONS = {
+  Admin: ['*'],
+  Manager: [
+    'dashboard:view', 'users:view', 'users:update',
+    'subjects:view', 'subjects:create', 'subjects:update', 'subjects:publish',
+    'lessons:view', 'lessons:create', 'lessons:update', 'lessons:delete',
+    'registrations:view', 'registrations:update', 'reports:view', 'uploads:create'
+  ],
+  Teacher: [
+    'subjects:view', 'subjects:create', 'subjects:update', 'lessons:view', 'lessons:create',
+    'lessons:update', 'lessons:delete', 'quizzes:view', 'quizzes:create',
+    'quizzes:update', 'questions:view', 'questions:create', 'questions:update',
+    'questions:delete', 'registrations:view', 'registrations:update', 'uploads:create'
+  ],
+  Student: [
+    'courses:view', 'courses:register', 'courses:learn', 'quiz:take',
+    'quiz:review', 'profile:view', 'profile:update'
+  ],
 };
 
 module.exports = {
   PERMISSIONS,
+  DEFAULT_ROLE_PERMISSIONS,
 };

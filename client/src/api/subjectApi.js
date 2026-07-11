@@ -22,7 +22,7 @@ export const createSubject = (data) =>
   axiosInstance.post('/subjects', data);
 
 /**
- * Update a subject (Admin or Expert).
+ * Update a subject (Admin or Teacher).
  * @param {string} id
  * @param {Object} data
  */

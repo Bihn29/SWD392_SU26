@@ -1,0 +1,34 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor "Admin" as Admin
+participant "Controller\nUserController" as Controller
+participant "Model\nUserModel" as Model
+database "MongoDB" as DB
+
+Admin -> Controller : 1: request to view list of users\nGET /api/admin/users
+activate Controller
+
+Controller -> Controller : 2: check requester role (Admin or Manager)
+
+alt [requester_is_manager]
+    Controller -> Controller : 3: set filter to exclude Admin users
+else [requester_is_admin]
+    Controller -> Controller : 3: set empty filter (view all)
+end
+
+Controller -> Model : 4: find users with filter, exclude password, sort by createdAt desc
+activate Model
+Model -> DB : 5: execute query with filter
+activate DB
+DB --> Model : 6: return user records
+deactivate DB
+Model --> Controller : 7: return list of users
+deactivate Model
+
+Controller --> Admin : 8: return 200 with user list
+deactivate Controller
+
+@enduml

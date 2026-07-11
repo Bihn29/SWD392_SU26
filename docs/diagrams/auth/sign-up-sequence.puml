@@ -1,0 +1,25 @@
+@startuml
+actor User
+boundary "React UI" as UI
+control "AuthController" as Controller
+entity "User" as Model
+database "MongoDB" as DB
+
+User -> UI : Enter fullName, email, password, phone\nClick Register
+UI -> Controller : POST /api/auth/register\n{ fullName, email, password, phone }
+Controller -> Model : findOne({ email })
+Model -> DB : Query DB
+DB --> Model : Result
+Model --> Controller : existingUser
+alt Email already exists
+    Controller --> UI : 400 Bad Request
+    UI --> User : Show error message
+else Email available
+    Controller -> Model : create({ name: fullName, email, password, role: 'Student', phone })
+    Model -> DB : Insert document
+    DB --> Model : Inserted document
+    Model --> Controller : Return new user
+    Controller --> UI : 201 Created\nSuccess message
+    UI --> User : Show success,\nRedirect to Login
+end
+@enduml

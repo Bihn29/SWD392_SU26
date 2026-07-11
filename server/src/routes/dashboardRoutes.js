@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const dashboardController = require('../controllers/dashboardController');
 const { protect } = require('../middlewares/authMiddleware');
+const { requirePermission } = require('../middlewares/roleMiddleware');
 
 // ─── DEV BYPASS: inject mock Admin – set to false to re-enable real auth ───────
 const DEV_BYPASS = false;
@@ -22,16 +23,7 @@ const authMiddleware = DEV_BYPASS ? devMockAuth : protect;
 
 router.use(authMiddleware);
 
-// Role check middleware
-const authorizeRoles = (...roles) => (req, res, next) => {
-  if (!roles.includes(req.user.role)) {
-    return res.status(403).json({ success: false, message: 'Bạn không có quyền truy cập.' });
-  }
-  next();
-};
-
-// Protect all dashboard routes for Admin and Manager
-router.use(authorizeRoles('Admin', 'Manager'));
+router.use(requirePermission('dashboard:view'));
 
 // GET /api/admin/dashboard/overview
 router.get('/overview', dashboardController.getOverview);

@@ -6,13 +6,16 @@ const Subject = require('../models/Subject');
  */
 const checkCourseOwner = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Authentication required.' });
+    }
     // Admin always has access to all courses
     if (req.user.role === 'Admin') {
       return next();
     }
 
-    // Expert and Teacher need to own the course
-    if (req.user.role === 'Expert' || req.user.role === 'Teacher') {
+    // Teachers need to own the course
+    if (req.user.role === 'Teacher') {
       const subjectId = req.params.subjectId || req.params.id; // Support both params based on route
       if (!subjectId) {
         return res.status(400).json({ success: false, message: 'Subject ID is required' });

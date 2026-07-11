@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../../../api/axiosInstance';
 import { useToast } from '../../../components/common/Toast';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getRoleCode } from '../../../utils/roleRedirect';
@@ -33,7 +33,7 @@ const UserFormPage = () => {
     if (isEdit) {
       const fetchUser = async () => {
         try {
-          const res = await axios.get(`http://localhost:5000/api/admin/users/${id}`, { withCredentials: true });
+          const res = await axiosInstance.get(`/admin/users/${id}`);
           if (res.data.success) {
             const { name, email, role, isActive } = res.data.data;
             setFormData({ name, email, role, isActive, password: '' });
@@ -61,10 +61,10 @@ const UserFormPage = () => {
     e.preventDefault();
     try {
       if (isEdit) {
-        await axios.put(`http://localhost:5000/api/admin/users/${id}`, formData, { withCredentials: true });
+        await axiosInstance.put(`/admin/users/${id}`, formData);
         toast.success('Cập nhật người dùng thành công');
       } else {
-        await axios.post('http://localhost:5000/api/admin/users', formData, { withCredentials: true });
+        await axiosInstance.post('/admin/users', formData);
         toast.success('Thêm người dùng thành công');
       }
       navigate('/admin/users');
@@ -115,14 +115,16 @@ const UserFormPage = () => {
 
           {!isEdit && (
             <div className="form-group">
-              <label className="form-label">Mật khẩu (mặc định: password123)</label>
+              <label className="form-label">Mật khẩu <span style={{color: 'red'}}>*</span></label>
               <input
                 type="password"
                 name="password"
                 className="form-control"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Để trống sẽ dùng mật khẩu mặc định"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Tối thiểu 6 ký tự"
+              minLength={6}
+              required={!isEdit}
               />
             </div>
           )}

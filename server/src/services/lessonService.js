@@ -1,4 +1,5 @@
 const Lesson = require('../models/Lesson');
+const Subject = require('../models/Subject');
 
 exports.getLessonsBySubjectId = async (subjectId) => {
   return await Lesson.find({ subject: subjectId })
@@ -12,6 +13,12 @@ exports.getLessonById = async (id) => {
 };
 
 exports.createLesson = async (data) => {
+  const subject = await Subject.findById(data.subject).select('_id');
+  if (!subject) {
+    const error = new Error('Subject not found');
+    error.statusCode = 404;
+    throw error;
+  }
   return await Lesson.create(data);
 };
 

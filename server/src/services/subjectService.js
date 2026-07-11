@@ -1,4 +1,15 @@
 const Subject = require('../models/Subject');
+const User = require('../models/User');
+
+const ensureTeacherOwner = async (ownerId) => {
+  if (!ownerId) return;
+  const owner = await User.findOne({ _id: ownerId, role: 'Teacher', isActive: true }).select('_id');
+  if (!owner) {
+    const error = new Error('Owner phải là tài khoản Teacher đang hoạt động.');
+    error.statusCode = 400;
+    throw error;
+  }
+};
 
 /**
  * Get paginated, filtered, and searchable subjects list.
@@ -112,6 +123,7 @@ const getSubjectById = async (id) => {
  * Create a new subject (Admin only – BR-SUB-005).
  */
 const createSubject = async (data, userId) => {
+  await ensureTeacherOwner(data.owner);
   const subject = await Subject.create({
     ...data,
     createdBy: userId,
@@ -127,29 +139,31 @@ const createSubject = async (data, userId) => {
 /**
  * Update a subject.
  * - Admin can update all fields (BR-SUB-006).
- * - Expert can only update assigned subjects (BR-SUB-007).
- * - Expert cannot change owner or publish/unpublish (BR-SUB-008).
+ * - Teacher can only update assigned subjects (BR-SUB-007).
+ * - Teacher cannot change owner or publish/unpublish (BR-SUB-008).
  */
 const updateSubject = async (id, data, user) => {
   const subject = await Subject.findById(id);
   if (!subject) return null;
 
-  if (user.role === 'Expert') {
-    // BR-SUB-007: Expert can only update assigned subjects
+  if (data.owner) await ensureTeacherOwner(data.owner);
+
+  if (!['Admin', 'Manager'].includes(user.role)) {
+    // Teacher-like roles can only update assigned subjects
     if (subject.owner.toString() !== user._id.toString()) {
       const err = new Error('You can only update subjects assigned to you.');
       err.statusCode = 403;
       throw err;
     }
 
-    // BR-SUB-008: Expert cannot publish/unpublish
+    // BR-SUB-008: Teacher-like roles cannot publish/unpublish
     if (data.status === 'Published' || data.status === 'Unpublished') {
-      const err = new Error('Experts cannot publish or unpublish subjects.');
+      const err = new Error('Teachers cannot publish or unpublish subjects.');
       err.statusCode = 403;
       throw err;
     }
 
-    // Expert cannot change owner
+    // Teacher-like roles cannot change owner
     delete data.owner;
   }
 

@@ -14,7 +14,7 @@ const CourseDetailPage = () => {
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [enrollmentStatus, setEnrollmentStatus] = useState(null); // null, 'enrolled', 'not_enrolled'
+  const [enrollmentStatus, setEnrollmentStatus] = useState(null); // null, 'enrolled', 'pending', 'not_enrolled'
   const [enrolling, setEnrolling] = useState(false);
 
   useEffect(() => {
@@ -30,7 +30,8 @@ const CourseDetailPage = () => {
         if (isAuthenticated && roleCode === 'Student') {
           const enrollRes = await checkEnrollment(id);
           if (enrollRes.data && enrollRes.data.data) {
-            setEnrollmentStatus(enrollRes.data.data.isEnrolled ? 'enrolled' : 'not_enrolled');
+            const enrollment = enrollRes.data.data;
+            setEnrollmentStatus(enrollment.isEnrolled ? 'enrolled' : enrollment.isPending ? 'pending' : 'not_enrolled');
           }
         }
       } catch (error) {
@@ -60,13 +61,16 @@ const CourseDetailPage = () => {
       return;
     }
 
+    if (enrollmentStatus === 'pending') {
+      toast.info('Đang chờ duyệt', 'Đăng ký của bạn đang chờ Admin/Giảng viên duyệt.');
+      return;
+    }
+
     setEnrolling(true);
     try {
       await enrollCourse(id);
-      toast.success('Thành công', 'Đăng ký khóa học thành công!');
-      setEnrollmentStatus('enrolled');
-      // Tùy chọn: Chuyển hướng học viên vào khóa học luôn
-      navigate(`/student/my-courses/${id}`);
+      toast.success('Thành công', 'Đăng ký thành công, đang chờ Admin/Giảng viên duyệt.');
+      setEnrollmentStatus('pending');
     } catch (error) {
       toast.error('Lỗi', error.response?.data?.message || 'Không thể đăng ký khóa học.');
     } finally {
@@ -137,10 +141,10 @@ const CourseDetailPage = () => {
               className={`btn ${enrollmentStatus === 'enrolled' ? 'btn-success' : 'btn-primary'}`} 
               style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: '16px' }}
               onClick={handleEnrollClick}
-              disabled={enrolling}
+              disabled={enrolling || enrollmentStatus === 'pending'}
             >
               {enrolling ? 'Đang xử lý...' : 
-               enrollmentStatus === 'enrolled' ? 'Tiếp tục học' : 'Đăng ký học ngay'}
+               enrollmentStatus === 'enrolled' ? 'Tiếp tục học' : enrollmentStatus === 'pending' ? 'Đang chờ duyệt' : 'Đăng ký học ngay'}
             </button>
             
             {!isAuthenticated && (

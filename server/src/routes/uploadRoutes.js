@@ -24,14 +24,16 @@ const storage = multer.diskStorage({
 
 // File filter to allow images and videos
 const fileFilter = (req, file, cb) => {
-  const allowedImageTypes = /jpeg|jpg|png|gif|webp/;
-  const allowedVideoTypes = /mp4|mov|avi|mkv/;
+  const allowedImageExtensions = new Set(['.jpeg', '.jpg', '.png', '.gif', '.webp']);
+  const allowedImageMimeTypes = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+  const allowedVideoExtensions = new Set(['.mp4', '.mov', '.avi', '.mkv']);
+  const allowedVideoMimeTypes = new Set(['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska']);
 
   const extname = path.extname(file.originalname).toLowerCase();
   const mimetype = file.mimetype;
 
-  const isImage = allowedImageTypes.test(extname) && allowedImageTypes.test(mimetype);
-  const isVideo = allowedVideoTypes.test(extname) && allowedVideoTypes.test(mimetype);
+  const isImage = allowedImageExtensions.has(extname) && allowedImageMimeTypes.has(mimetype);
+  const isVideo = allowedVideoExtensions.has(extname) && allowedVideoMimeTypes.has(mimetype);
 
   if (isImage || isVideo) {
     return cb(null, true);

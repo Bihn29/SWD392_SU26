@@ -28,7 +28,7 @@ const STATUS_OPTIONS = ['Draft', 'Published', 'Unpublished', 'Inactive'];
  *   onSubmit      – async handler (data) => void
  *   loading       – disables submit while processing
  *   isEdit        – shows status field when true
- *   canChangeStatus – Admin only; hides status for Expert
+ *   canChangeStatus – Admin/Manager only; hides status for Teacher
  */
 const SubjectForm = ({
   initialData = {},

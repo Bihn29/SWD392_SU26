@@ -41,7 +41,7 @@ const validateCreateSubject = [
 
   body('owner')
     .notEmpty()
-    .withMessage('Owner (Expert) is required.') // BR-SUB-004
+    .withMessage('Owner (Teacher) is required.') // BR-SUB-004
     .custom((value) => mongoose.Types.ObjectId.isValid(value))
     .withMessage('Owner must be a valid user ID.'),
 

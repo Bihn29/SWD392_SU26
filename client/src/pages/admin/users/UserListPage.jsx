@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../../../api/axiosInstance';
 import { useToast } from '../../../components/common/Toast';
 import { ROLE_LABELS } from '../../../utils/statusLabels';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -15,7 +15,7 @@ const UserListPage = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/admin/users', { withCredentials: true });
+      const res = await axiosInstance.get('/admin/users');
       if (res.data.success) {
         setUsers(res.data.data);
       }
@@ -33,7 +33,7 @@ const UserListPage = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/admin/users/${id}`, { withCredentials: true });
+      await axiosInstance.delete(`/admin/users/${id}`);
       toast.success('Xóa người dùng thành công');
       fetchUsers();
     } catch (error) {

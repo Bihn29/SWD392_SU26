@@ -18,7 +18,7 @@ const subjectSchema = new mongoose.Schema(
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Owner (Expert) is required'], // BR-SUB-004
+      required: [true, 'Owner (Teacher) is required'], // BR-SUB-004
     },
     thumbnail: {
       type: String,

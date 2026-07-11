@@ -1,5 +1,17 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Role = require('../models/Role');
+const { DEFAULT_ROLE_PERMISSIONS } = require('../constants/permissions');
+
+const resolveRole = async (roleCode) => {
+  const role = await Role.findOne({ code: roleCode }).lean();
+  return {
+    role,
+    permissions: role?.status === 'Active'
+      ? role.permissions
+      : (role ? [] : (DEFAULT_ROLE_PERMISSIONS[roleCode] || [])),
+  };
+};
 
 /**
  * Middleware: Verify JWT token and attach user to req.user
@@ -32,7 +44,17 @@ const protect = async (req, res, next) => {
       });
     }
 
+    const { role, permissions } = await resolveRole(user.role);
+    if (role && role.status !== 'Active') {
+      return res.status(401).json({
+        success: false,
+        message: 'User role is inactive.',
+      });
+    }
+
     req.user = user;
+    req.userRole = role;
+    req.userPermissions = permissions;
     next();
   } catch (error) {
     return res.status(401).json({
@@ -58,7 +80,12 @@ const optionalAuth = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(decoded.id).select('-password');
       if (user && user.isActive) {
-        req.user = user;
+        const { role, permissions } = await resolveRole(user.role);
+        if (!role || role.status === 'Active') {
+          req.user = user;
+          req.userRole = role;
+          req.userPermissions = permissions;
+        }
       }
     }
     next();

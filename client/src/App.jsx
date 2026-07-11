@@ -69,11 +69,16 @@ const ProtectedRoute = ({ children }) => {
 /**
  * Require specific role(s). Redirects to / if unauthorized.
  */
-const RoleRoute = ({ children, roles }) => {
+const RoleRoute = ({ children, roles, permissions = [] }) => {
   if (DEV_BYPASS) return children; // ─ DEV: skip role check
   const { user } = useAuth();
   const roleCode = getRoleCode(user);
-  if (roles && !roles.includes(roleCode)) {
+  const roleAllowed = !roles || roles.includes(roleCode);
+  const userPermissions = user?.permissions || user?.role?.permissions || [];
+  const permissionAllowed = permissions.length > 0 &&
+    (userPermissions.includes('*') || permissions.some((permission) => userPermissions.includes(permission)));
+  const isCustomRole = roleCode && !['Admin', 'Manager', 'Teacher', 'Student'].includes(roleCode);
+  if (roles && !roleAllowed && !(isCustomRole && permissionAllowed)) {
     return <Navigate to="/" replace />;
   }
   return children;
@@ -127,7 +132,7 @@ const AppRoutes = () => (
       path="/admin"
       element={
         <ProtectedRoute>
-          <RoleRoute roles={['Admin', 'Manager', 'Expert']}>
+          <RoleRoute roles={['Admin', 'Manager']} permissions={['dashboard:view', 'subjects:view']}>
             <AdminLayout />
           </RoleRoute>
         </ProtectedRoute>
@@ -138,7 +143,7 @@ const AppRoutes = () => (
       <Route
         path="dashboard"
         element={
-          <RoleRoute roles={['Admin', 'Manager']}>
+          <RoleRoute roles={['Admin', 'Manager']} permissions={['dashboard:view']}>
             <DashboardPage />
           </RoleRoute>
         }
@@ -149,7 +154,7 @@ const AppRoutes = () => (
       <Route
         path="subjects/create"
         element={
-          <RoleRoute roles={['Admin', 'Manager']}>
+          <RoleRoute roles={['Admin', 'Manager']} permissions={['subjects:create']}>
             <SubjectCreatePage />
           </RoleRoute>
         }
@@ -161,7 +166,7 @@ const AppRoutes = () => (
       <Route
         path="users"
         element={
-          <RoleRoute roles={['Admin', 'Manager']}>
+          <RoleRoute roles={['Admin', 'Manager']} permissions={['users:view']}>
             <UserListPage />
           </RoleRoute>
         }
@@ -169,7 +174,7 @@ const AppRoutes = () => (
       <Route
         path="users/create"
         element={
-          <RoleRoute roles={['Admin', 'Manager']}>
+          <RoleRoute roles={['Admin', 'Manager']} permissions={['users:update']}>
             <UserFormPage />
           </RoleRoute>
         }
@@ -177,7 +182,7 @@ const AppRoutes = () => (
       <Route
         path="users/:id/edit"
         element={
-          <RoleRoute roles={['Admin', 'Manager']}>
+          <RoleRoute roles={['Admin', 'Manager']} permissions={['users:update']}>
             <UserFormPage />
           </RoleRoute>
         }
@@ -223,7 +228,7 @@ const AppRoutes = () => (
       path="/teacher"
       element={
         <ProtectedRoute>
-          <RoleRoute roles={['Teacher', 'Expert']}>
+          <RoleRoute roles={['Teacher']}>
             <TeacherLayout />
           </RoleRoute>
         </ProtectedRoute>

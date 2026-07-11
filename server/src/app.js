@@ -40,21 +40,21 @@ app.get('/api/health', (req, res) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
-app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/upload', protect, require('./middlewares/roleMiddleware').requirePermission('uploads:create'), require('./routes/uploadRoutes'));
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/student', require('./routes/studentRoutes'));
 app.use('/api/admin/roles', protect, requireRole('Admin'), roleRoutes);
-app.use('/api/admin/users', protect, requireRole('Admin', 'Manager'), require('./routes/userRoutes'));
-app.use('/api/admin/subjects/:subjectId/lessons', protect, requireRole('Admin', 'Manager'), require('./routes/lessonRoutes'));
-app.use('/api/admin/lessons', protect, requireRole('Admin', 'Manager'), require('./routes/lessonRoutes'));
-app.use('/api/admin/subjects/:subjectId/students', protect, requireRole('Admin', 'Manager'), require('./routes/registrationRoutes'));
+app.use('/api/admin/users', protect, require('./routes/userRoutes'));
+app.use('/api/admin/subjects/:subjectId/lessons', protect, require('./routes/lessonRoutes'));
+app.use('/api/admin/lessons', protect, require('./routes/lessonRoutes'));
+app.use('/api/admin/subjects/:subjectId/students', protect, require('./routes/registrationRoutes'));
 app.use('/api/admin/dashboard', require('./routes/dashboardRoutes'));
 
 // ─── Teacher Routes ──────────────────────────────────────────────────────────
 const { checkCourseOwner } = require('./middlewares/ownerMiddleware');
 app.use('/api/teacher', require('./routes/teacherRoutes'));
-app.use('/api/teacher/courses/:subjectId/lessons', checkCourseOwner, require('./routes/lessonRoutes'));
-app.use('/api/teacher/courses/:subjectId/students', checkCourseOwner, require('./routes/registrationRoutes'));
+app.use('/api/teacher/courses/:subjectId/lessons', protect, requireRole('Teacher'), checkCourseOwner, require('./routes/lessonRoutes'));
+app.use('/api/teacher/courses/:subjectId/students', protect, requireRole('Teacher'), checkCourseOwner, require('./routes/registrationRoutes'));
 
 // ─── QA Routes ───────────────────────────────────────────────────────────────
 app.use('/api/qa', require('./routes/qaRoutes'));

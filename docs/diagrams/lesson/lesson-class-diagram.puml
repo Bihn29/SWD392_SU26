@@ -1,0 +1,37 @@
+@startuml
+
+package "Lesson Management Module" {
+  class LessonRoutes {
+    + GET /api/admin/subjects/:subjectId/lessons
+    + GET /api/admin/lessons/:id
+    + POST /api/admin/subjects/:subjectId/lessons
+    + PUT /api/admin/lessons/:id
+    + DELETE /api/admin/lessons/:id
+    + PATCH /api/admin/lessons/:id/activate
+  }
+
+  class LessonController {
+    + getLessonsBySubject(req, res, next)
+    + getLessonById(req, res, next)
+    + createLesson(req, res, next)
+    + updateLesson(req, res, next)
+    + deleteLesson(req, res, next)
+    + activateLesson(req, res, next)
+  }
+
+  class LessonModel {
+    + _id: ObjectId
+    + subject: ObjectId (Ref: Subject)
+    + title: String
+    + type: String (Video, HTML, Quiz)
+    + order: Number
+    + videoUrl: String
+    + htmlContent: String
+    + status: String
+  }
+}
+
+LessonRoutes --> LessonController : Routes to
+LessonController --> LessonModel : Interacts (CRUD)
+
+@enduml

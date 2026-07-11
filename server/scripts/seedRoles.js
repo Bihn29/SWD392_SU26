@@ -19,13 +19,15 @@ const seedRoles = async () => {
 
     // We can wipe the roles collection first, or insert new ones if they don't exist.
     // For simplicity, we wipe all roles and insert the predefined ones.
-    console.log('Clearing existing Roles...');
-    await Role.deleteMany({});
-    console.log('Roles cleared.');
-
-    console.log('Inserting Roles...');
-    await Role.insertMany(roles);
-    console.log('Roles inserted successfully.');
+    console.log('Synchronizing system Roles...');
+    await Role.bulkWrite(roles.map((role) => ({
+      updateOne: {
+        filter: { code: role.code },
+        update: { $set: role },
+        upsert: true,
+      },
+    })));
+    console.log('Roles synchronized successfully.');
 
     console.log('Roles seeded completely!');
     process.exit(0);

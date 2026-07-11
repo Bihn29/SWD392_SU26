@@ -1,0 +1,46 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor "User" as User
+participant "Controller\nAuthController" as Controller
+participant "Model\nUserModel" as Model
+database "MongoDB" as DB
+
+User -> Controller : 1: request to login\nPOST /api/auth/login\n{ email, password }
+activate Controller
+
+Controller -> Model : 2: find user by email with password field
+activate Model
+Model -> DB : 3: execute query by email
+activate DB
+DB --> Model : 4: return user record
+deactivate DB
+Model --> Controller : 5: return user or null
+deactivate Model
+
+alt [user_not_found]
+    Controller --> User : 6: return 401 Unauthorized\n(Email hoặc mật khẩu không đúng)
+else [user_found]
+    alt [user_not_active]
+        Controller --> User : 7: return 401 Unauthorized\n(Tài khoản đã bị khóa)
+    else [user_active]
+        Controller -> Model : 8: compare password with stored password
+        activate Model
+        Model --> Controller : 9: return isMatch (true/false)
+        deactivate Model
+
+        alt [password_incorrect]
+            Controller --> User : 10: return 401 Unauthorized\n(Email hoặc mật khẩu không đúng)
+        else [password_correct]
+            Controller -> Controller : 11: generate JWT token with userId
+
+            Controller --> User : 12: return 200 OK\n{ token, user: { _id, fullName, email, role, status } }
+        end
+    end
+end
+
+deactivate Controller
+
+@enduml

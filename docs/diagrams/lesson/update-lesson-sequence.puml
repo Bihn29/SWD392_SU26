@@ -1,0 +1,25 @@
+@startuml
+actor TeacherAdmin as User
+boundary "React UI" as UI
+control "AuthMiddleware" as Auth
+control "RoleOwnerMiddleware" as Role
+control "LessonController" as Controller
+entity "Lesson" as Model
+database "MongoDB" as DB
+
+User -> UI : Edit lesson details\nClick Save
+UI -> Auth : PUT /api/admin/lessons/:id\n{ title, order, videoUrl, ... }
+Auth -> Auth : protect
+Auth -> Role : checkCourseOwner or requireRole
+Role -> Controller : Authorized
+Controller -> Model : findByIdAndUpdate(id, req.body, { new: true, runValidators: true })
+Model -> DB : Query & Update
+DB --> Model : Updated document
+alt Not found
+    Controller --> UI : 404 Not Found
+else Success
+    Model --> Controller : updatedLesson
+    Controller --> UI : 200 OK\n{ data: updatedLesson }
+    UI --> User : Show success
+end
+@enduml

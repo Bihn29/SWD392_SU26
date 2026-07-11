@@ -1,0 +1,179 @@
+@startuml UserRole_ClassDiagram
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #D9A05B
+  HeaderBackgroundColor #FFE6CC
+  FontColor #000000
+  AttributeFontSize 11
+  StereotypeFontSize 10
+}
+
+skinparam arrow {
+  Color #444444
+  Thickness 1.2
+}
+
+' ══════════════════════════════
+' ENUMS
+' ══════════════════════════════
+
+enum RoleType {
+  Admin
+  Manager
+  Teacher
+  Student
+}
+
+enum RoleStatus {
+  Active
+  Inactive
+}
+
+' ══════════════════════════════
+' ENTITY / MODEL
+' ══════════════════════════════
+
+class User {
+  + _id : ObjectId
+  + name : String
+  + email : String
+  - password : String
+  + role : RoleType
+  + avatar : String
+  + isActive : Boolean
+  + createdAt : Date
+  + updatedAt : Date
+  --
+  + comparePassword(candidatePassword : String) : Boolean
+  + toJSON() : Object
+}
+
+class Role {
+  + _id : ObjectId
+  + name : String
+  + code : String
+  + description : String
+  + permissions : String[]
+  + status : RoleStatus
+  + isSystemRole : Boolean
+  + createdBy : ObjectId
+  + updatedBy : ObjectId
+  + createdAt : Date
+  + updatedAt : Date
+}
+
+' ══════════════════════════════
+' CONTROLLER
+' ══════════════════════════════
+
+class UserController {
+  + getUsers(req, res, next) : void
+  + getUserById(req, res, next) : void
+  + createUser(req, res, next) : void
+  + updateUser(req, res, next) : void
+  + deleteUser(req, res, next) : void
+}
+
+class RoleController {
+  + getRoles(req, res, next) : void
+  + getRoleById(req, res, next) : void
+  + createRole(req, res, next) : void
+  + updateRole(req, res, next) : void
+  + deactivateRole(req, res, next) : void
+  + activateRole(req, res, next) : void
+}
+
+' ══════════════════════════════
+' SERVICE
+' ══════════════════════════════
+
+class RoleService {
+  + getRoles(params : Object) : Object
+  + getRoleById(id : ObjectId) : Role
+  + createRole(data : Object, userId : ObjectId) : Role
+  + updateRole(id : ObjectId, data : Object, userId : ObjectId) : Role
+  + deactivateRole(id : ObjectId, userId : ObjectId) : Role
+  + activateRole(id : ObjectId, userId : ObjectId) : Role
+}
+
+' ══════════════════════════════
+' VALIDATION
+' ══════════════════════════════
+
+class RoleValidation {
+  + validateRoleId : Middleware[]
+  + validateCreateRole : Middleware[]
+  + validateUpdateRole : Middleware[]
+  + validateRoleQuery : Middleware[]
+  --
+  - validate(req, res, next) : void
+}
+
+' ══════════════════════════════
+' DTO
+' ══════════════════════════════
+
+class PaginationDTO {
+  + page : Number
+  + limit : Number
+  + totalItems : Number
+  + totalPages : Number
+}
+
+class RoleListResponseDTO {
+  + items : Role[]
+  + pagination : PaginationDTO
+}
+
+class CreateUserRequestDTO {
+  + name : String
+  + email : String
+  + password : String
+  + role : String
+  + isActive : Boolean
+}
+
+class CreateRoleRequestDTO {
+  + name : String
+  + code : String
+  + description : String
+  + permissions : String[]
+}
+
+' ══════════════════════════════
+' RELATIONSHIPS
+' ══════════════════════════════
+
+' Controller → Model (User management, direct queries)
+UserController ..> User : <<use>>\nqueries
+
+' Controller → Service (Role management through service layer)
+RoleController ..> RoleService : <<use>>\ndelegates
+
+' Controller → Validation (Role routes use validation middleware)
+RoleController ..> RoleValidation : <<use>>\nvalidates input
+
+' Service → Model (Role business logic)
+RoleService ..> Role : <<use>>\nqueries
+
+' Role audit trail: createdBy / updatedBy references User (optional)
+Role "0..*" --> "0..1" User : createdBy / updatedBy >
+
+' User has a RoleType enum
+User --> RoleType : role
+
+' Role has a RoleStatus enum
+Role --> RoleStatus : status
+
+' Controller uses DTOs
+UserController ..> CreateUserRequestDTO : <<use>>\nconsumes
+RoleController ..> CreateRoleRequestDTO : <<use>>\nconsumes
+RoleService ..> RoleListResponseDTO : <<use>>\nproduces
+RoleListResponseDTO *-- PaginationDTO : contains
+
+@enduml

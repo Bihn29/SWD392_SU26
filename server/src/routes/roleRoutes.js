@@ -11,7 +11,7 @@ const {
 } = require('../controllers/roleController');
 
 const { protect } = require('../middlewares/authMiddleware');
-const { requireRole } = require('../middlewares/roleMiddleware');
+const { requireRole, requirePermission } = require('../middlewares/roleMiddleware');
 const {
   validateCreateRole,
   validateUpdateRole,
@@ -42,6 +42,7 @@ const roleMiddleware = DEV_BYPASS ? devMockRole : requireRole;
 // Protected routes - only Admin
 router.use(authMiddleware);
 router.use(roleMiddleware('Admin'));
+router.use(requirePermission('roles:manage'));
 
 router.get('/', validateRoleQuery, getRoles);
 router.get('/:id', validateRoleId, getRoleById);

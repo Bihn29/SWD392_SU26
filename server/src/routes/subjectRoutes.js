@@ -14,7 +14,7 @@ const {
 } = require('../controllers/subjectController');
 
 const { protect } = require('../middlewares/authMiddleware');
-const { requireRole } = require('../middlewares/roleMiddleware');
+const { requirePermission } = require('../middlewares/roleMiddleware');
 const {
   validateCreateSubject,
   validateUpdateSubject,
@@ -41,10 +41,7 @@ const devMockAuth = (req, _res, next) => {
   next();
 };
 
-const devMockRole = () => (_req, _res, next) => next();
-
 const authMiddleware   = DEV_BYPASS ? devMockAuth    : protect;
-const roleMiddleware   = DEV_BYPASS ? devMockRole    : requireRole;
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── Protected routes ────────────────────────────────────────────────────────
@@ -52,24 +49,24 @@ const roleMiddleware   = DEV_BYPASS ? devMockRole    : requireRole;
 router.use(authMiddleware);
 
 // GET /api/subjects
-router.get('/', validateSubjectQuery, getAllSubjects);
+router.get('/', requirePermission('subjects:view'), validateSubjectQuery, getAllSubjects);
 
 // GET /api/subjects/:id
-router.get('/:id', validateSubjectId, getSubjectById);
+router.get('/:id', requirePermission('subjects:view'), validateSubjectId, getSubjectById);
 
-// POST /api/subjects  (Admin only – BR-SUB-005)
-router.post('/', roleMiddleware('Admin', 'Manager'), validateCreateSubject, createSubject);
+// POST /api/subjects (permission: subjects:create)
+router.post('/', requirePermission('subjects:create'), validateCreateSubject, createSubject);
 
-// PUT /api/subjects/:id  (Admin + Expert – BR-SUB-006, BR-SUB-007)
-router.put('/:id', roleMiddleware('Admin', 'Expert', 'Manager'), validateSubjectId, validateUpdateSubject, updateSubject);
+// PUT /api/subjects/:id  (Admin + Teacher – BR-SUB-006, BR-SUB-007)
+router.put('/:id', requirePermission('subjects:update'), validateSubjectId, validateUpdateSubject, updateSubject);
 
-// DELETE /api/subjects/:id  (Admin only – BR-SUB-009, BR-SUB-010)
-router.delete('/:id', roleMiddleware('Admin'), validateSubjectId, deleteSubject);
+// DELETE /api/subjects/:id (permission: subjects:update)
+router.delete('/:id', requirePermission('subjects:update'), validateSubjectId, deleteSubject);
 
-// PATCH /api/subjects/:id/publish  (Admin only – BR-SUB-008)
-router.patch('/:id/publish', roleMiddleware('Admin', 'Manager'), validateSubjectId, publishSubject);
+// PATCH /api/subjects/:id/publish (permission: subjects:publish)
+router.patch('/:id/publish', requirePermission('subjects:publish'), validateSubjectId, publishSubject);
 
-// PATCH /api/subjects/:id/unpublish  (Admin only – BR-SUB-008)
-router.patch('/:id/unpublish', roleMiddleware('Admin', 'Manager'), validateSubjectId, unpublishSubject);
+// PATCH /api/subjects/:id/unpublish (permission: subjects:publish)
+router.patch('/:id/unpublish', requirePermission('subjects:publish'), validateSubjectId, unpublishSubject);
 
 module.exports = router;

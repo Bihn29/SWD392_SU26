@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
 const { protect } = require('../middlewares/authMiddleware');
+const { requirePermission } = require('../middlewares/roleMiddleware');
 const registrationController = require('../controllers/registrationController');
 
 // ─── DEV BYPASS: inject mock Admin – set to false to re-enable real auth ───────
@@ -23,15 +24,15 @@ const authMiddleware = DEV_BYPASS ? devMockAuth : protect;
 router.use(authMiddleware);
 
 // GET /api/admin/subjects/:subjectId/students
-router.get('/', registrationController.getStudentsBySubject);
+router.get('/', requirePermission('registrations:view'), registrationController.getStudentsBySubject);
 
 // PATCH /api/admin/subjects/:subjectId/students/:registrationId/approve
-router.patch('/:registrationId/approve', registrationController.approveRegistration);
+router.patch('/:registrationId/approve', requirePermission('registrations:update'), registrationController.approveRegistration);
 
 // PATCH /api/admin/subjects/:subjectId/students/:registrationId/reject
-router.patch('/:registrationId/reject', registrationController.rejectRegistration);
+router.patch('/:registrationId/reject', requirePermission('registrations:update'), registrationController.rejectRegistration);
 
 // GET /api/admin/subjects/:subjectId/students/:studentId/progress
-router.get('/:studentId/progress', registrationController.getStudentDetailedProgress);
+router.get('/:studentId/progress', requirePermission('registrations:view'), registrationController.getStudentDetailedProgress);
 
 module.exports = router;

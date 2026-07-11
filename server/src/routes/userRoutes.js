@@ -8,7 +8,7 @@ const {
 } = require('../controllers/userController');
 
 const { protect } = require('../middlewares/authMiddleware');
-const { requireRole } = require('../middlewares/roleMiddleware');
+const { requirePermission } = require('../middlewares/roleMiddleware');
 
 const router = express.Router();
 
@@ -16,12 +16,12 @@ const router = express.Router();
 router.use(protect);
 
 router.route('/')
-  .get(requireRole('Admin', 'Manager'), getUsers)
-  .post(requireRole('Admin', 'Manager'), createUser);
+  .get(requirePermission('users:view'), getUsers)
+  .post(requirePermission('users:update'), createUser);
 
 router.route('/:id')
-  .get(requireRole('Admin', 'Manager'), getUserById)
-  .put(requireRole('Admin', 'Manager'), updateUser)
-  .delete(requireRole('Admin'), deleteUser);
+  .get(requirePermission('users:view'), getUserById)
+  .put(requirePermission('users:update'), updateUser)
+  .delete(requirePermission('users:update'), deleteUser);
 
 module.exports = router;

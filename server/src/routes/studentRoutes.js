@@ -3,6 +3,7 @@ const router = express.Router();
 const { getStudentHome, enrollCourse, checkEnrollment, getCourseLessons, getQuizQuestions, getStudentQuizzes } = require('../controllers/studentController');
 const { protect } = require('../middlewares/authMiddleware');
 const { requireRole } = require('../middlewares/roleMiddleware');
+const { requirePermission } = require('../middlewares/roleMiddleware');
 
 // Chỉ Student mới được vào route này
 router.use(protect);
@@ -15,15 +16,15 @@ router.get('/home', getStudentHome);
 router.get('/quizzes', getStudentQuizzes);
 
 // POST /api/student/enroll/:courseId
-router.post('/enroll/:courseId', enrollCourse);
+router.post('/enroll/:courseId', requirePermission('courses:register'), enrollCourse);
 
 // GET /api/student/enrollment-status/:courseId
 router.get('/enrollment-status/:courseId', checkEnrollment);
 
 // GET /api/student/courses/:courseId/lessons
-router.get('/courses/:courseId/lessons', getCourseLessons);
+router.get('/courses/:courseId/lessons', requirePermission('courses:learn'), getCourseLessons);
 
 // GET /api/student/courses/:courseId/lessons/:lessonId/questions
-router.get('/courses/:courseId/lessons/:lessonId/questions', getQuizQuestions);
+router.get('/courses/:courseId/lessons/:lessonId/questions', requirePermission('courses:learn'), getQuizQuestions);
 
 module.exports = router;

@@ -86,7 +86,7 @@ const createSubject = async (req, res, next) => {
 /**
  * @desc  Update subject
  * @route PUT /api/subjects/:id
- * @access Admin, Expert
+ * @access Admin, Teacher, Manager (permission controlled)
  */
 const updateSubject = async (req, res, next) => {
   try {
